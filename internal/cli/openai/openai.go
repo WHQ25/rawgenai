@@ -14,4 +14,5 @@ func init() {
 	Cmd.AddCommand(ttsCmd)
 	Cmd.AddCommand(imageCmd)
 	Cmd.AddCommand(sttCmd)
+	Cmd.AddCommand(videoCmd)
 }
