@@ -26,7 +26,23 @@ go.work.sum
 
 # env file
 .env
+.envrc
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Binary
+/rawgenai
+
+# Test outputs
+*.mp3
+*.wav
+*.flac
+*.opus
+*.aac
+*.pcm
