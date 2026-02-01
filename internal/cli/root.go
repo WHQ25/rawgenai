@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/WHQ25/rawgenai/internal/cli/google"
 	"github.com/WHQ25/rawgenai/internal/cli/openai"
 	"github.com/spf13/cobra"
 )
@@ -13,6 +14,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(openai.Cmd)
+	rootCmd.AddCommand(google.Cmd)
 }
 
 func Execute() error {

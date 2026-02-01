@@ -40,6 +40,7 @@ go.work.sum
 /rawgenai
 
 # Test outputs
+/test-output
 *.mp3
 *.wav
 *.flac
