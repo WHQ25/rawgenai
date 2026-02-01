@@ -7,13 +7,13 @@ before:
     - go mod tidy
 
 builds:
-  - id: rawgenai
+  # macOS and Windows (CGO disabled, oto uses purego)
+  - id: rawgenai-nocgo
     main: ./cmd/rawgenai
     binary: rawgenai
     env:
       - CGO_ENABLED=0
     goos:
-      - linux
       - darwin
       - windows
     goarch:
@@ -22,6 +22,22 @@ builds:
     ignore:
       - goos: windows
         goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/WHQ25/rawgenai/internal/cli.version={{.Version}}
+      - -X github.com/WHQ25/rawgenai/internal/cli.commit={{.Commit}}
+      - -X github.com/WHQ25/rawgenai/internal/cli.date={{.Date}}
+
+  # Linux (CGO enabled for oto/ALSA)
+  - id: rawgenai-linux
+    main: ./cmd/rawgenai
+    binary: rawgenai
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
     ldflags:
       - -s -w
       - -X github.com/WHQ25/rawgenai/internal/cli.version={{.Version}}
