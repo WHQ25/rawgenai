@@ -127,7 +127,7 @@ func TestCreate_MissingAPIKey(t *testing.T) {
 func TestCreate_ValidFlags(t *testing.T) {
 	cmd := newCreateCmd()
 
-	flags := []string{"file", "image", "model", "size", "duration"}
+	flags := []string{"prompt-file", "image", "model", "size", "duration"}
 	for _, flag := range flags {
 		if cmd.Flag(flag) == nil {
 			t.Errorf("expected --%s flag", flag)
@@ -165,7 +165,7 @@ func TestCreate_FromFile(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newCreateCmd()
-	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name())
+	_, stderr, err := executeCommand(cmd, "--prompt-file", tmpFile.Name())
 
 	if err == nil {
 		t.Fatal("expected error (missing api key), got success")
@@ -184,7 +184,7 @@ func TestCreate_FromFile(t *testing.T) {
 
 func TestCreate_FromFileNotFound(t *testing.T) {
 	cmd := newCreateCmd()
-	_, stderr, err := executeCommand(cmd, "--file", "/nonexistent/file.txt")
+	_, stderr, err := executeCommand(cmd, "--prompt-file", "/nonexistent/file.txt")
 
 	if err == nil {
 		t.Fatal("expected error for file not found")

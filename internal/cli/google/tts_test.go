@@ -208,6 +208,9 @@ func TestTTS_InvalidSpeakerFormat(t *testing.T) {
 }
 
 func TestTTS_FromStdin(t *testing.T) {
+	t.Setenv("GEMINI_API_KEY", "")
+	t.Setenv("GOOGLE_API_KEY", "")
+
 	cmd := newTTSCmd()
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}

@@ -34,11 +34,11 @@ var validImageFormats = map[string]bool{
 }
 
 type createFlags struct {
-	file     string
-	image    string
-	model    string
-	size     string
-	duration int
+	promptFile string
+	image      string
+	model      string
+	size       string
+	duration   int
 }
 
 type createResponse struct {
@@ -67,7 +67,7 @@ func newCreateCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flags.file, "file", "", "Input prompt file")
+	cmd.Flags().StringVar(&flags.promptFile, "prompt-file", "", "Input prompt file")
 	cmd.Flags().StringVarP(&flags.image, "image", "i", "", "First frame image (JPEG/PNG/WebP)")
 	cmd.Flags().StringVarP(&flags.model, "model", "m", "sora-2", "Model name (sora-2, sora-2-pro)")
 	cmd.Flags().StringVarP(&flags.size, "size", "s", "1280x720", "Video resolution")
@@ -78,7 +78,7 @@ func newCreateCmd() *cobra.Command {
 
 func runCreate(cmd *cobra.Command, args []string, flags *createFlags) error {
 	// Get prompt from args, file, or stdin
-	prompt, err := getPrompt(args, flags.file, cmd.InOrStdin())
+	prompt, err := getPrompt(args, flags.promptFile, cmd.InOrStdin())
 	if err != nil {
 		return common.WriteError(cmd, "missing_prompt", err.Error())
 	}

@@ -12,9 +12,9 @@ import (
 )
 
 type extendFlags struct {
-	file     string
-	model    string
-	negative string
+	promptFile string
+	model      string
+	negative   string
 }
 
 type extendResponse struct {
@@ -47,7 +47,7 @@ is a new generation and will also be deleted after 2 days.`,
 		},
 	}
 
-	cmd.Flags().StringVar(&flags.file, "file", "", "Input prompt file")
+	cmd.Flags().StringVar(&flags.promptFile, "prompt-file", "", "Input prompt file")
 	cmd.Flags().StringVarP(&flags.model, "model", "m", "veo-3.1", "Model: veo-3.1, veo-3.1-fast")
 	cmd.Flags().StringVar(&flags.negative, "negative", "", "Negative prompt (what to avoid)")
 
@@ -63,7 +63,7 @@ func runExtend(cmd *cobra.Command, args []string, flags *extendFlags) error {
 
 	// Get prompt from remaining args, file, or stdin
 	promptArgs := args[1:]
-	prompt, err := getPrompt(promptArgs, flags.file, cmd.InOrStdin())
+	prompt, err := getPrompt(promptArgs, flags.promptFile, cmd.InOrStdin())
 	if err != nil {
 		return common.WriteError(cmd, "missing_prompt", "prompt is required for video extension")
 	}

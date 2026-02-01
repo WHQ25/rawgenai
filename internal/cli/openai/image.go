@@ -34,7 +34,7 @@ type imageFlags struct {
 	output      string
 	images      []string
 	mask        string
-	file        string
+	promptFile  string
 	continueID  string
 	model       string
 	size        string
@@ -65,7 +65,7 @@ func newImageCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&flags.output, "output", "o", "", "Output file path (format from extension)")
 	cmd.Flags().StringArrayVarP(&flags.images, "image", "i", nil, "Reference image(s), can be repeated (max 16)")
 	cmd.Flags().StringVar(&flags.mask, "mask", "", "Mask image for inpainting (PNG with alpha)")
-	cmd.Flags().StringVar(&flags.file, "file", "", "Input prompt file")
+	cmd.Flags().StringVar(&flags.promptFile, "prompt-file", "", "Input prompt file")
 	cmd.Flags().StringVarP(&flags.continueID, "continue", "c", "", "Previous response ID for multi-turn conversation")
 	cmd.Flags().StringVarP(&flags.model, "model", "m", "gpt-image-1", "Model name")
 	cmd.Flags().StringVarP(&flags.size, "size", "s", "auto", "Image dimensions")
@@ -80,7 +80,7 @@ func newImageCmd() *cobra.Command {
 
 func runImage(cmd *cobra.Command, args []string, flags *imageFlags) error {
 	// Get prompt
-	prompt, err := getText(args, flags.file, cmd.InOrStdin())
+	prompt, err := getText(args, flags.promptFile, cmd.InOrStdin())
 	if err != nil {
 		return common.WriteError(cmd, "missing_prompt", err.Error())
 	}

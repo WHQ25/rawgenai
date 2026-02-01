@@ -25,7 +25,7 @@ var supportedFormats = map[string]oai.AudioSpeechNewParamsResponseFormat{
 
 type ttsFlags struct {
 	output       string
-	file         string
+	promptFile   string
 	voice        string
 	model        string
 	instructions string
@@ -56,7 +56,7 @@ func newTTSCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&flags.output, "output", "o", "", "Output file path (format from extension)")
-	cmd.Flags().StringVar(&flags.file, "file", "", "Input text file")
+	cmd.Flags().StringVar(&flags.promptFile, "file", "", "Input text file")
 	cmd.Flags().StringVar(&flags.voice, "voice", "alloy", "Voice name or custom voice ID")
 	cmd.Flags().StringVarP(&flags.model, "model", "m", "gpt-4o-mini-tts", "Model name")
 	cmd.Flags().StringVar(&flags.instructions, "instructions", "", "Voice style instructions (gpt-4o-mini-tts only)")
@@ -67,7 +67,7 @@ func newTTSCmd() *cobra.Command {
 
 func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 	// Get text from args, file, or stdin
-	text, err := getText(args, flags.file, cmd.InOrStdin())
+	text, err := getText(args, flags.promptFile, cmd.InOrStdin())
 	if err != nil {
 		return common.WriteError(cmd, "missing_text", err.Error())
 	}

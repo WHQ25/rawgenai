@@ -165,7 +165,7 @@ func TestCreate_MissingAPIKey(t *testing.T) {
 func TestCreate_ValidFlags(t *testing.T) {
 	cmd := newCreateCmd()
 
-	flags := []string{"file", "first-frame", "last-frame", "ref", "model", "aspect", "resolution", "duration", "negative", "seed"}
+	flags := []string{"prompt-file", "first-frame", "last-frame", "ref", "model", "aspect", "resolution", "duration", "negative", "seed"}
 	for _, flag := range flags {
 		if cmd.Flag(flag) == nil {
 			t.Errorf("expected --%s flag", flag)
@@ -207,7 +207,7 @@ func TestCreate_FromFile(t *testing.T) {
 	t.Setenv("GOOGLE_API_KEY", "")
 
 	cmd := newCreateCmd()
-	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name())
+	_, stderr, err := executeCommand(cmd, "--prompt-file", tmpFile.Name())
 
 	if err == nil {
 		t.Fatal("expected error (missing api key), got success")
@@ -226,7 +226,7 @@ func TestCreate_FromFile(t *testing.T) {
 
 func TestCreate_FromFileNotFound(t *testing.T) {
 	cmd := newCreateCmd()
-	_, stderr, err := executeCommand(cmd, "--file", "/nonexistent/file.txt")
+	_, stderr, err := executeCommand(cmd, "--prompt-file", "/nonexistent/file.txt")
 
 	if err == nil {
 		t.Fatal("expected error for file not found")
@@ -657,7 +657,7 @@ func TestCreate_EmptyFile(t *testing.T) {
 	tmpFile.Close()
 
 	cmd := newCreateCmd()
-	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name())
+	_, stderr, err := executeCommand(cmd, "--prompt-file", tmpFile.Name())
 
 	if err == nil {
 		t.Fatal("expected error for empty file")
@@ -1282,7 +1282,7 @@ func TestExtend_InvalidModel(t *testing.T) {
 func TestExtend_ValidFlags(t *testing.T) {
 	cmd := newExtendCmd()
 
-	flags := []string{"file", "model", "negative"}
+	flags := []string{"prompt-file", "model", "negative"}
 	for _, flag := range flags {
 		if cmd.Flag(flag) == nil {
 			t.Errorf("expected --%s flag", flag)

@@ -47,7 +47,7 @@ var validImageFormats = map[string]bool{
 }
 
 type createFlags struct {
-	file       string
+	promptFile string
 	firstFrame string
 	lastFrame  string
 	ref        []string
@@ -90,7 +90,7 @@ download the video, and extend. Videos are deleted after 2 days.`,
 		},
 	}
 
-	cmd.Flags().StringVar(&flags.file, "file", "", "Input prompt file")
+	cmd.Flags().StringVar(&flags.promptFile, "prompt-file", "", "Input prompt file")
 	cmd.Flags().StringVar(&flags.firstFrame, "first-frame", "", "First frame image (JPEG/PNG)")
 	cmd.Flags().StringVar(&flags.lastFrame, "last-frame", "", "Last frame image (JPEG/PNG), requires --first-frame")
 	cmd.Flags().StringArrayVar(&flags.ref, "ref", nil, "Reference image (max 3, repeatable)")
@@ -106,7 +106,7 @@ download the video, and extend. Videos are deleted after 2 days.`,
 
 func runCreate(cmd *cobra.Command, args []string, flags *createFlags) error {
 	// Get prompt from args, file, or stdin
-	prompt, err := getPrompt(args, flags.file, cmd.InOrStdin())
+	prompt, err := getPrompt(args, flags.promptFile, cmd.InOrStdin())
 	if err != nil {
 		return common.WriteError(cmd, "missing_prompt", err.Error())
 	}

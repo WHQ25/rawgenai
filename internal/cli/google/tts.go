@@ -42,11 +42,11 @@ type ttsResponse struct {
 
 // TTS flags
 type ttsFlags struct {
-	output   string
-	file     string
-	voice    string
-	speakers string
-	model    string
+	output     string
+	promptFile string
+	voice      string
+	speakers   string
+	model      string
 }
 
 // Command
@@ -67,7 +67,7 @@ func newTTSCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&flags.output, "output", "o", "", "Output file path (.wav)")
-	cmd.Flags().StringVar(&flags.file, "file", "", "Input text file")
+	cmd.Flags().StringVar(&flags.promptFile, "file", "", "Input text file")
 	cmd.Flags().StringVarP(&flags.voice, "voice", "v", "Kore", "Voice name (single speaker)")
 	cmd.Flags().StringVar(&flags.speakers, "speakers", "", "Multi-speaker config: \"Name1=Voice1,Name2=Voice2\"")
 	cmd.Flags().StringVarP(&flags.model, "model", "m", "flash", "Model: flash, pro")
@@ -77,7 +77,7 @@ func newTTSCmd() *cobra.Command {
 
 func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 	// Get text from args, file, or stdin
-	text, err := getPrompt(args, flags.file, cmd.InOrStdin())
+	text, err := getPrompt(args, flags.promptFile, cmd.InOrStdin())
 	if err != nil {
 		return common.WriteError(cmd, "missing_text", err.Error())
 	}

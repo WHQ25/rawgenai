@@ -13,7 +13,7 @@ import (
 )
 
 type remixFlags struct {
-	file string
+	promptFile string
 }
 
 type remixResponse struct {
@@ -41,7 +41,7 @@ func newRemixCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flags.file, "file", "", "Input prompt file")
+	cmd.Flags().StringVar(&flags.promptFile, "prompt-file", "", "Input prompt file")
 
 	return cmd
 }
@@ -54,7 +54,7 @@ func runRemix(cmd *cobra.Command, args []string, flags *remixFlags) error {
 
 	// Get prompt from remaining args, file, or stdin
 	promptArgs := args[1:]
-	prompt, err := getRemixPrompt(promptArgs, flags.file, cmd.InOrStdin())
+	prompt, err := getRemixPrompt(promptArgs, flags.promptFile, cmd.InOrStdin())
 	if err != nil {
 		return common.WriteError(cmd, "missing_prompt", err.Error())
 	}

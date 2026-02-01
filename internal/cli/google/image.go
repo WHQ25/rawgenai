@@ -57,13 +57,13 @@ type imageResponse struct {
 
 // Flag struct
 type imageFlags struct {
-	output string
-	images []string
-	file   string
-	model  string
-	aspect string
-	size   string
-	search bool
+	output     string
+	images     []string
+	promptFile string
+	model      string
+	aspect     string
+	size       string
+	search     bool
 }
 
 // Command
@@ -85,7 +85,7 @@ func newImageCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&flags.output, "output", "o", "", "Output file path (.png)")
 	cmd.Flags().StringArrayVarP(&flags.images, "image", "i", nil, "Reference image(s), can be repeated")
-	cmd.Flags().StringVar(&flags.file, "file", "", "Input prompt file")
+	cmd.Flags().StringVar(&flags.promptFile, "prompt-file", "", "Input prompt file")
 	cmd.Flags().StringVarP(&flags.model, "model", "m", "flash", "Model: flash, pro")
 	cmd.Flags().StringVarP(&flags.aspect, "aspect", "a", "1:1", "Aspect ratio")
 	cmd.Flags().StringVarP(&flags.size, "size", "s", "1K", "Image size (Pro only): 1K, 2K, 4K")
@@ -96,7 +96,7 @@ func newImageCmd() *cobra.Command {
 
 func runImage(cmd *cobra.Command, args []string, flags *imageFlags) error {
 	// Get prompt
-	prompt, err := getPrompt(args, flags.file, cmd.InOrStdin())
+	prompt, err := getPrompt(args, flags.promptFile, cmd.InOrStdin())
 	if err != nil {
 		return common.WriteError(cmd, "missing_prompt", err.Error())
 	}

@@ -272,7 +272,7 @@ func TestImage_MissingAPIKey(t *testing.T) {
 func TestImage_ValidFlags(t *testing.T) {
 	cmd := newImageCmd()
 
-	flags := []string{"output", "image", "mask", "file", "continue", "model", "size", "quality", "background", "compression", "fidelity", "moderation"}
+	flags := []string{"output", "image", "mask", "prompt-file", "continue", "model", "size", "quality", "background", "compression", "fidelity", "moderation"}
 	for _, flag := range flags {
 		if cmd.Flag(flag) == nil {
 			t.Errorf("expected --%s flag", flag)
@@ -344,7 +344,7 @@ func TestImage_FromFile(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newImageCmd()
-	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name(), "-o", "out.png")
+	_, stderr, err := executeCommand(cmd, "--prompt-file", tmpFile.Name(), "-o", "out.png")
 
 	if err == nil {
 		t.Fatal("expected error (missing api key), got success")
@@ -503,7 +503,7 @@ func TestImage_ShortFlags(t *testing.T) {
 
 func TestImage_PromptFileNotFound(t *testing.T) {
 	cmd := newImageCmd()
-	_, stderr, err := executeCommand(cmd, "--file", "/nonexistent/prompt.txt", "-o", "out.png")
+	_, stderr, err := executeCommand(cmd, "--prompt-file", "/nonexistent/prompt.txt", "-o", "out.png")
 
 	if err == nil {
 		t.Fatal("expected error for prompt file not found")
@@ -531,7 +531,7 @@ func TestImage_EmptyPromptFile(t *testing.T) {
 	tmpFile.Close()
 
 	cmd := newImageCmd()
-	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name(), "-o", "out.png")
+	_, stderr, err := executeCommand(cmd, "--prompt-file", tmpFile.Name(), "-o", "out.png")
 
 	if err == nil {
 		t.Fatal("expected error for empty prompt file")
