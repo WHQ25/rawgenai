@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"github.com/WHQ25/rawgenai/internal/cli/openai/video"
 	"github.com/spf13/cobra"
 )
 
@@ -14,5 +15,5 @@ func init() {
 	Cmd.AddCommand(ttsCmd)
 	Cmd.AddCommand(imageCmd)
 	Cmd.AddCommand(sttCmd)
-	Cmd.AddCommand(videoCmd)
+	Cmd.AddCommand(video.Cmd)
 }

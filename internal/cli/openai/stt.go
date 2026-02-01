@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
@@ -100,9 +101,9 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 	audioFile, audioReader, cleanup, err := getAudioInput(args, flags.file, cmd.InOrStdin())
 	if err != nil {
 		if errors.Is(err, errFileNotFound) {
-			return writeError(cmd, "file_not_found", err.Error())
+			return common.WriteError(cmd, "file_not_found", err.Error())
 		}
-		return writeError(cmd, "missing_file", err.Error())
+		return common.WriteError(cmd, "missing_file", err.Error())
 	}
 	if cleanup != nil {
 		defer cleanup()
@@ -112,33 +113,33 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 	if audioFile != "" {
 		ext := strings.ToLower(filepath.Ext(audioFile))
 		if !supportedAudioFormats[ext] {
-			return writeError(cmd, "unsupported_format", fmt.Sprintf("unsupported audio format '%s', supported: mp3, mp4, mpeg, mpga, m4a, wav, webm, ogg, oga, opus, flac", ext))
+			return common.WriteError(cmd, "unsupported_format", fmt.Sprintf("unsupported audio format '%s', supported: mp3, mp4, mpeg, mpga, m4a, wav, webm, ogg, oga, opus, flac", ext))
 		}
 
 		// Check file size
 		info, err := os.Stat(audioFile)
 		if err != nil {
-			return writeError(cmd, "file_not_found", fmt.Sprintf("cannot access file: %s", err.Error()))
+			return common.WriteError(cmd, "file_not_found", fmt.Sprintf("cannot access file: %s", err.Error()))
 		}
 		if info.Size() > maxFileSize {
-			return writeError(cmd, "file_too_large", fmt.Sprintf("file size %d bytes exceeds 25 MB limit", info.Size()))
+			return common.WriteError(cmd, "file_too_large", fmt.Sprintf("file size %d bytes exceeds 25 MB limit", info.Size()))
 		}
 	}
 
 	// Validate temperature
 	if flags.temperature < 0 || flags.temperature > 1 {
-		return writeError(cmd, "invalid_temperature", "temperature must be between 0 and 1")
+		return common.WriteError(cmd, "invalid_temperature", "temperature must be between 0 and 1")
 	}
 
 	// Validate output format
 	responseFormat, ok := sttResponseFormats[flags.format]
 	if !ok {
-		return writeError(cmd, "invalid_format", fmt.Sprintf("invalid format '%s', supported: json, text, srt, vtt", flags.format))
+		return common.WriteError(cmd, "invalid_format", fmt.Sprintf("invalid format '%s', supported: json, text, srt, vtt", flags.format))
 	}
 
 	// srt/vtt formats require output file
 	if (flags.format == "srt" || flags.format == "vtt") && flags.output == "" {
-		return writeError(cmd, "missing_output", fmt.Sprintf("--%s format requires --output flag", flags.format))
+		return common.WriteError(cmd, "missing_output", fmt.Sprintf("--%s format requires --output flag", flags.format))
 	}
 
 	// For srt/vtt, we'll use verbose_json and generate the format ourselves
@@ -150,7 +151,7 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 
 	// Validate prompt compatibility
 	if flags.prompt != "" && flags.model == "gpt-4o-transcribe-diarize" {
-		return writeError(cmd, "invalid_parameter", "--prompt is not supported by model 'gpt-4o-transcribe-diarize'")
+		return common.WriteError(cmd, "invalid_parameter", "--prompt is not supported by model 'gpt-4o-transcribe-diarize'")
 	}
 
 	// If verbose, use verbose_json format
@@ -161,7 +162,7 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 	// Check API key
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return writeError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
 	}
 
 	// Open file for API
@@ -172,7 +173,7 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 	} else {
 		f, err := os.Open(audioFile)
 		if err != nil {
-			return writeError(cmd, "file_not_found", fmt.Sprintf("cannot open file: %s", err.Error()))
+			return common.WriteError(cmd, "file_not_found", fmt.Sprintf("cannot open file: %s", err.Error()))
 		}
 		fileToClose = f
 		defer f.Close()
@@ -222,7 +223,7 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 		}
 
 		if err := os.WriteFile(absPath, []byte(subtitleContent), 0644); err != nil {
-			return writeError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
+			return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
 		}
 
 		result := sttResponse{
@@ -231,7 +232,7 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 			Model:    flags.model,
 			Language: resp.Language,
 		}
-		return writeSuccess(cmd, result)
+		return common.WriteSuccess(cmd, result)
 	}
 
 	// Build response
@@ -265,13 +266,13 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 		}
 
 		if err := os.WriteFile(absPath, []byte(resp.Text), 0644); err != nil {
-			return writeError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
+			return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
 		}
 
 		result.File = absPath
 	}
 
-	return writeSuccess(cmd, result)
+	return common.WriteSuccess(cmd, result)
 }
 
 // formatTimeSRT formats seconds as SRT timestamp (HH:MM:SS,mmm)

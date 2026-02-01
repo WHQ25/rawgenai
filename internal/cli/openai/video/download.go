@@ -1,4 +1,4 @@
-package openai
+package video
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
@@ -24,22 +25,22 @@ var variantExtensions = map[string]string{
 	"spritesheet": ".jpg",
 }
 
-type videoDownloadFlags struct {
+type downloadFlags struct {
 	output  string
 	variant string
 }
 
-type videoDownloadResponse struct {
+type downloadResponse struct {
 	Success bool   `json:"success"`
 	VideoID string `json:"video_id"`
 	Variant string `json:"variant"`
 	File    string `json:"file"`
 }
 
-var videoDownloadCmd = newVideoDownloadCmd()
+var downloadCmd = newDownloadCmd()
 
-func newVideoDownloadCmd() *cobra.Command {
-	flags := &videoDownloadFlags{}
+func newDownloadCmd() *cobra.Command {
+	flags := &downloadFlags{}
 
 	cmd := &cobra.Command{
 		Use:           "download <video_id>",
@@ -49,7 +50,7 @@ func newVideoDownloadCmd() *cobra.Command {
 		SilenceUsage:  true,
 		Args:          cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runVideoDownload(cmd, args, flags)
+			return runDownload(cmd, args, flags)
 		},
 	}
 
@@ -59,32 +60,32 @@ func newVideoDownloadCmd() *cobra.Command {
 	return cmd
 }
 
-func runVideoDownload(cmd *cobra.Command, args []string, flags *videoDownloadFlags) error {
+func runDownload(cmd *cobra.Command, args []string, flags *downloadFlags) error {
 	videoID := strings.TrimSpace(args[0])
 	if videoID == "" {
-		return writeError(cmd, "missing_video_id", "video_id is required")
+		return common.WriteError(cmd, "missing_video_id", "video_id is required")
 	}
 
 	// Validate variant
 	if !validVariants[flags.variant] {
-		return writeError(cmd, "invalid_variant", "variant must be: video, thumbnail, spritesheet")
+		return common.WriteError(cmd, "invalid_variant", "variant must be: video, thumbnail, spritesheet")
 	}
 
 	// Validate output
 	if flags.output == "" {
-		return writeError(cmd, "missing_output", "output file is required, use -o flag")
+		return common.WriteError(cmd, "missing_output", "output file is required, use -o flag")
 	}
 
 	expectedExt := variantExtensions[flags.variant]
 	ext := strings.ToLower(filepath.Ext(flags.output))
 	if ext != expectedExt {
-		return writeError(cmd, "invalid_format", fmt.Sprintf("output file must be %s for variant '%s'", expectedExt, flags.variant))
+		return common.WriteError(cmd, "invalid_format", fmt.Sprintf("output file must be %s for variant '%s'", expectedExt, flags.variant))
 	}
 
 	// Check API key
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return writeError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
 	}
 
 	client := oai.NewClient()
@@ -93,12 +94,12 @@ func runVideoDownload(cmd *cobra.Command, args []string, flags *videoDownloadFla
 	// Get video status first
 	video, err := client.Videos.Get(ctx, videoID)
 	if err != nil {
-		return handleVideoAPIError(cmd, err)
+		return handleAPIError(cmd, err)
 	}
 
 	// Check if video is ready
 	if video.Status != oai.VideoStatusCompleted {
-		return writeError(cmd, "video_not_ready", fmt.Sprintf("video is not ready for download, current status: %s", video.Status))
+		return common.WriteError(cmd, "video_not_ready", fmt.Sprintf("video is not ready for download, current status: %s", video.Status))
 	}
 
 	// Download content
@@ -108,7 +109,7 @@ func runVideoDownload(cmd *cobra.Command, args []string, flags *videoDownloadFla
 
 	resp, err := client.Videos.DownloadContent(ctx, videoID, params)
 	if err != nil {
-		return handleVideoAPIError(cmd, err)
+		return handleAPIError(cmd, err)
 	}
 	defer resp.Body.Close()
 
@@ -121,20 +122,20 @@ func runVideoDownload(cmd *cobra.Command, args []string, flags *videoDownloadFla
 	// Write to file
 	outFile, err := os.Create(absPath)
 	if err != nil {
-		return writeError(cmd, "output_write_error", fmt.Sprintf("cannot create output file: %s", err.Error()))
+		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot create output file: %s", err.Error()))
 	}
 	defer outFile.Close()
 
 	_, err = io.Copy(outFile, resp.Body)
 	if err != nil {
-		return writeError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
+		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
 	}
 
-	result := videoDownloadResponse{
+	result := downloadResponse{
 		Success: true,
 		VideoID: videoID,
 		Variant: flags.variant,
 		File:    absPath,
 	}
-	return writeSuccess(cmd, result)
+	return common.WriteSuccess(cmd, result)
 }

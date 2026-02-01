@@ -1,15 +1,16 @@
-package openai
+package video
 
 import (
 	"context"
 	"os"
 	"strings"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
 
-type videoStatusResponse struct {
+type statusResponse struct {
 	Success   bool   `json:"success"`
 	VideoID   string `json:"video_id"`
 	Status    string `json:"status"`
@@ -17,9 +18,9 @@ type videoStatusResponse struct {
 	CreatedAt int64  `json:"created_at,omitempty"`
 }
 
-var videoStatusCmd = newVideoStatusCmd()
+var statusCmd = newStatusCmd()
 
-func newVideoStatusCmd() *cobra.Command {
+func newStatusCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "status <video_id>",
 		Short:         "Get video generation status",
@@ -28,23 +29,23 @@ func newVideoStatusCmd() *cobra.Command {
 		SilenceUsage:  true,
 		Args:          cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runVideoStatus(cmd, args)
+			return runStatus(cmd, args)
 		},
 	}
 
 	return cmd
 }
 
-func runVideoStatus(cmd *cobra.Command, args []string) error {
+func runStatus(cmd *cobra.Command, args []string) error {
 	videoID := strings.TrimSpace(args[0])
 	if videoID == "" {
-		return writeError(cmd, "missing_video_id", "video_id is required")
+		return common.WriteError(cmd, "missing_video_id", "video_id is required")
 	}
 
 	// Check API key
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return writeError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
 	}
 
 	// Get video status
@@ -53,10 +54,10 @@ func runVideoStatus(cmd *cobra.Command, args []string) error {
 
 	video, err := client.Videos.Get(ctx, videoID)
 	if err != nil {
-		return handleVideoAPIError(cmd, err)
+		return handleAPIError(cmd, err)
 	}
 
-	result := videoStatusResponse{
+	result := statusResponse{
 		Success:   true,
 		VideoID:   video.ID,
 		Status:    string(video.Status),
@@ -68,5 +69,5 @@ func runVideoStatus(cmd *cobra.Command, args []string) error {
 		result.Error = video.Error.Message
 	}
 
-	return writeSuccess(cmd, result)
+	return common.WriteSuccess(cmd, result)
 }

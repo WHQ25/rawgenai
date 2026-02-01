@@ -1,16 +1,34 @@
-package openai
+package video
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/spf13/cobra"
 )
+
+func executeCommand(cmd *cobra.Command, args ...string) (stdout string, stderr string, err error) {
+	stdoutBuf := new(bytes.Buffer)
+	stderrBuf := new(bytes.Buffer)
+
+	cmd.SetOut(stdoutBuf)
+	cmd.SetErr(stderrBuf)
+	cmd.SetArgs(args)
+	cmd.SilenceErrors = true
+	cmd.SilenceUsage = true
+
+	err = cmd.Execute()
+
+	return stdoutBuf.String(), stderrBuf.String(), err
+}
 
 // ============ video create tests ============
 
-func TestVideoCreate_MissingPrompt(t *testing.T) {
-	cmd := newVideoCreateCmd()
+func TestCreate_MissingPrompt(t *testing.T) {
+	cmd := newCreateCmd()
 	_, stderr, err := executeCommand(cmd)
 
 	if err == nil {
@@ -32,10 +50,10 @@ func TestVideoCreate_MissingPrompt(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_InvalidSize(t *testing.T) {
+func TestCreate_InvalidSize(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoCreateCmd()
+	cmd := newCreateCmd()
 	_, stderr, err := executeCommand(cmd, "A cat", "--size", "1920x1080")
 
 	if err == nil {
@@ -53,7 +71,7 @@ func TestVideoCreate_InvalidSize(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_InvalidDuration(t *testing.T) {
+func TestCreate_InvalidDuration(t *testing.T) {
 	tests := []struct {
 		name     string
 		duration string
@@ -65,7 +83,7 @@ func TestVideoCreate_InvalidDuration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd := newVideoCreateCmd()
+			cmd := newCreateCmd()
 			_, stderr, err := executeCommand(cmd, "A cat", "--duration", tt.duration)
 
 			if err == nil {
@@ -85,10 +103,10 @@ func TestVideoCreate_InvalidDuration(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_MissingAPIKey(t *testing.T) {
+func TestCreate_MissingAPIKey(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoCreateCmd()
+	cmd := newCreateCmd()
 	_, stderr, err := executeCommand(cmd, "A cat")
 
 	if err == nil {
@@ -106,8 +124,8 @@ func TestVideoCreate_MissingAPIKey(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_ValidFlags(t *testing.T) {
-	cmd := newVideoCreateCmd()
+func TestCreate_ValidFlags(t *testing.T) {
+	cmd := newCreateCmd()
 
 	flags := []string{"file", "image", "model", "size", "duration"}
 	for _, flag := range flags {
@@ -117,8 +135,8 @@ func TestVideoCreate_ValidFlags(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_DefaultValues(t *testing.T) {
-	cmd := newVideoCreateCmd()
+func TestCreate_DefaultValues(t *testing.T) {
+	cmd := newCreateCmd()
 
 	if cmd.Flag("model").DefValue != "sora-2" {
 		t.Errorf("expected default model 'sora-2', got: %s", cmd.Flag("model").DefValue)
@@ -131,7 +149,7 @@ func TestVideoCreate_DefaultValues(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_FromFile(t *testing.T) {
+func TestCreate_FromFile(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "video_test_*.txt")
 	if err != nil {
 		t.Fatal(err)
@@ -146,7 +164,7 @@ func TestVideoCreate_FromFile(t *testing.T) {
 
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoCreateCmd()
+	cmd := newCreateCmd()
 	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name())
 
 	if err == nil {
@@ -164,8 +182,8 @@ func TestVideoCreate_FromFile(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_FromFileNotFound(t *testing.T) {
-	cmd := newVideoCreateCmd()
+func TestCreate_FromFileNotFound(t *testing.T) {
+	cmd := newCreateCmd()
 	_, stderr, err := executeCommand(cmd, "--file", "/nonexistent/file.txt")
 
 	if err == nil {
@@ -183,10 +201,10 @@ func TestVideoCreate_FromFileNotFound(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_FromStdin(t *testing.T) {
+func TestCreate_FromStdin(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoCreateCmd()
+	cmd := newCreateCmd()
 	cmd.SetIn(strings.NewReader("A cat playing piano"))
 
 	_, stderr, err := executeCommand(cmd)
@@ -206,10 +224,10 @@ func TestVideoCreate_FromStdin(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_ImageNotFound(t *testing.T) {
+func TestCreate_ImageNotFound(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "test-key")
 
-	cmd := newVideoCreateCmd()
+	cmd := newCreateCmd()
 	_, stderr, err := executeCommand(cmd, "A cat", "--image", "/nonexistent/image.jpg")
 
 	if err == nil {
@@ -227,7 +245,7 @@ func TestVideoCreate_ImageNotFound(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_InvalidImageFormat(t *testing.T) {
+func TestCreate_InvalidImageFormat(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "test-key")
 
 	tmpFile, err := os.CreateTemp("", "video_test_*.gif")
@@ -237,7 +255,7 @@ func TestVideoCreate_InvalidImageFormat(t *testing.T) {
 	defer os.Remove(tmpFile.Name())
 	tmpFile.Close()
 
-	cmd := newVideoCreateCmd()
+	cmd := newCreateCmd()
 	_, stderr, err := executeCommand(cmd, "A cat", "--image", tmpFile.Name())
 
 	if err == nil {
@@ -255,14 +273,14 @@ func TestVideoCreate_InvalidImageFormat(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_ValidSizes(t *testing.T) {
+func TestCreate_ValidSizes(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	validSizes := []string{"1280x720", "720x1280", "1792x1024", "1024x1792"}
+	sizes := []string{"1280x720", "720x1280", "1792x1024", "1024x1792"}
 
-	for _, size := range validSizes {
+	for _, size := range sizes {
 		t.Run(size, func(t *testing.T) {
-			cmd := newVideoCreateCmd()
+			cmd := newCreateCmd()
 			_, stderr, err := executeCommand(cmd, "A cat", "--size", size)
 
 			if err == nil {
@@ -282,14 +300,14 @@ func TestVideoCreate_ValidSizes(t *testing.T) {
 	}
 }
 
-func TestVideoCreate_ValidDurations(t *testing.T) {
+func TestCreate_ValidDurations(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	validDurations := []string{"4", "8", "12"}
+	durations := []string{"4", "8", "12"}
 
-	for _, duration := range validDurations {
+	for _, duration := range durations {
 		t.Run(duration+"s", func(t *testing.T) {
-			cmd := newVideoCreateCmd()
+			cmd := newCreateCmd()
 			_, stderr, err := executeCommand(cmd, "A cat", "--duration", duration)
 
 			if err == nil {
@@ -311,8 +329,8 @@ func TestVideoCreate_ValidDurations(t *testing.T) {
 
 // ============ video status tests ============
 
-func TestVideoStatus_MissingVideoID(t *testing.T) {
-	cmd := newVideoStatusCmd()
+func TestStatus_MissingVideoID(t *testing.T) {
+	cmd := newStatusCmd()
 	_, _, err := executeCommand(cmd)
 
 	if err == nil {
@@ -320,10 +338,10 @@ func TestVideoStatus_MissingVideoID(t *testing.T) {
 	}
 }
 
-func TestVideoStatus_MissingAPIKey(t *testing.T) {
+func TestStatus_MissingAPIKey(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoStatusCmd()
+	cmd := newStatusCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123")
 
 	if err == nil {
@@ -343,8 +361,8 @@ func TestVideoStatus_MissingAPIKey(t *testing.T) {
 
 // ============ video download tests ============
 
-func TestVideoDownload_MissingVideoID(t *testing.T) {
-	cmd := newVideoDownloadCmd()
+func TestDownload_MissingVideoID(t *testing.T) {
+	cmd := newDownloadCmd()
 	_, _, err := executeCommand(cmd, "-o", "out.mp4")
 
 	if err == nil {
@@ -352,8 +370,8 @@ func TestVideoDownload_MissingVideoID(t *testing.T) {
 	}
 }
 
-func TestVideoDownload_MissingOutput(t *testing.T) {
-	cmd := newVideoDownloadCmd()
+func TestDownload_MissingOutput(t *testing.T) {
+	cmd := newDownloadCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123")
 
 	if err == nil {
@@ -371,8 +389,8 @@ func TestVideoDownload_MissingOutput(t *testing.T) {
 	}
 }
 
-func TestVideoDownload_InvalidFormat(t *testing.T) {
-	cmd := newVideoDownloadCmd()
+func TestDownload_InvalidFormat(t *testing.T) {
+	cmd := newDownloadCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123", "-o", "out.avi")
 
 	if err == nil {
@@ -390,8 +408,8 @@ func TestVideoDownload_InvalidFormat(t *testing.T) {
 	}
 }
 
-func TestVideoDownload_InvalidVariant(t *testing.T) {
-	cmd := newVideoDownloadCmd()
+func TestDownload_InvalidVariant(t *testing.T) {
+	cmd := newDownloadCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123", "-o", "out.mp4", "--variant", "invalid")
 
 	if err == nil {
@@ -409,8 +427,8 @@ func TestVideoDownload_InvalidVariant(t *testing.T) {
 	}
 }
 
-func TestVideoDownload_ThumbnailRequiresJpg(t *testing.T) {
-	cmd := newVideoDownloadCmd()
+func TestDownload_ThumbnailRequiresJpg(t *testing.T) {
+	cmd := newDownloadCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123", "-o", "out.mp4", "--variant", "thumbnail")
 
 	if err == nil {
@@ -428,10 +446,10 @@ func TestVideoDownload_ThumbnailRequiresJpg(t *testing.T) {
 	}
 }
 
-func TestVideoDownload_MissingAPIKey(t *testing.T) {
+func TestDownload_MissingAPIKey(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoDownloadCmd()
+	cmd := newDownloadCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123", "-o", "out.mp4")
 
 	if err == nil {
@@ -449,8 +467,8 @@ func TestVideoDownload_MissingAPIKey(t *testing.T) {
 	}
 }
 
-func TestVideoDownload_ValidFlags(t *testing.T) {
-	cmd := newVideoDownloadCmd()
+func TestDownload_ValidFlags(t *testing.T) {
+	cmd := newDownloadCmd()
 
 	if cmd.Flag("output") == nil {
 		t.Error("expected --output flag")
@@ -462,10 +480,10 @@ func TestVideoDownload_ValidFlags(t *testing.T) {
 
 // ============ video list tests ============
 
-func TestVideoList_MissingAPIKey(t *testing.T) {
+func TestList_MissingAPIKey(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoListCmd()
+	cmd := newListCmd()
 	_, stderr, err := executeCommand(cmd)
 
 	if err == nil {
@@ -483,8 +501,8 @@ func TestVideoList_MissingAPIKey(t *testing.T) {
 	}
 }
 
-func TestVideoList_InvalidOrder(t *testing.T) {
-	cmd := newVideoListCmd()
+func TestList_InvalidOrder(t *testing.T) {
+	cmd := newListCmd()
 	_, stderr, err := executeCommand(cmd, "--order", "invalid")
 
 	if err == nil {
@@ -502,8 +520,8 @@ func TestVideoList_InvalidOrder(t *testing.T) {
 	}
 }
 
-func TestVideoList_ValidFlags(t *testing.T) {
-	cmd := newVideoListCmd()
+func TestList_ValidFlags(t *testing.T) {
+	cmd := newListCmd()
 
 	if cmd.Flag("limit") == nil {
 		t.Error("expected --limit flag")
@@ -515,8 +533,8 @@ func TestVideoList_ValidFlags(t *testing.T) {
 
 // ============ video delete tests ============
 
-func TestVideoDelete_MissingVideoID(t *testing.T) {
-	cmd := newVideoDeleteCmd()
+func TestDelete_MissingVideoID(t *testing.T) {
+	cmd := newDeleteCmd()
 	_, _, err := executeCommand(cmd)
 
 	if err == nil {
@@ -524,10 +542,10 @@ func TestVideoDelete_MissingVideoID(t *testing.T) {
 	}
 }
 
-func TestVideoDelete_MissingAPIKey(t *testing.T) {
+func TestDelete_MissingAPIKey(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoDeleteCmd()
+	cmd := newDeleteCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123")
 
 	if err == nil {
@@ -547,8 +565,8 @@ func TestVideoDelete_MissingAPIKey(t *testing.T) {
 
 // ============ video remix tests ============
 
-func TestVideoRemix_MissingVideoID(t *testing.T) {
-	cmd := newVideoRemixCmd()
+func TestRemix_MissingVideoID(t *testing.T) {
+	cmd := newRemixCmd()
 	_, _, err := executeCommand(cmd)
 
 	if err == nil {
@@ -556,8 +574,8 @@ func TestVideoRemix_MissingVideoID(t *testing.T) {
 	}
 }
 
-func TestVideoRemix_MissingPrompt(t *testing.T) {
-	cmd := newVideoRemixCmd()
+func TestRemix_MissingPrompt(t *testing.T) {
+	cmd := newRemixCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123")
 
 	if err == nil {
@@ -575,10 +593,10 @@ func TestVideoRemix_MissingPrompt(t *testing.T) {
 	}
 }
 
-func TestVideoRemix_MissingAPIKey(t *testing.T) {
+func TestRemix_MissingAPIKey(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoRemixCmd()
+	cmd := newRemixCmd()
 	_, stderr, err := executeCommand(cmd, "video_abc123", "New prompt")
 
 	if err == nil {

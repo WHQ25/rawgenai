@@ -1,19 +1,20 @@
-package openai
+package video
 
 import (
 	"context"
 	"os"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
 
-type videoListFlags struct {
+type listFlags struct {
 	limit int
 	order string
 }
 
-type videoListItem struct {
+type listItem struct {
 	VideoID   string `json:"video_id"`
 	Status    string `json:"status"`
 	Model     string `json:"model"`
@@ -24,16 +25,16 @@ type videoListItem struct {
 	CreatedAt int64  `json:"created_at"`
 }
 
-type videoListResponse struct {
-	Success bool            `json:"success"`
-	Videos  []videoListItem `json:"videos"`
-	Count   int             `json:"count"`
+type listResponse struct {
+	Success bool       `json:"success"`
+	Videos  []listItem `json:"videos"`
+	Count   int        `json:"count"`
 }
 
-var videoListCmd = newVideoListCmd()
+var listCmd = newListCmd()
 
-func newVideoListCmd() *cobra.Command {
-	flags := &videoListFlags{}
+func newListCmd() *cobra.Command {
+	flags := &listFlags{}
 
 	cmd := &cobra.Command{
 		Use:           "list",
@@ -42,7 +43,7 @@ func newVideoListCmd() *cobra.Command {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runVideoList(cmd, flags)
+			return runList(cmd, flags)
 		},
 	}
 
@@ -52,16 +53,16 @@ func newVideoListCmd() *cobra.Command {
 	return cmd
 }
 
-func runVideoList(cmd *cobra.Command, flags *videoListFlags) error {
+func runList(cmd *cobra.Command, flags *listFlags) error {
 	// Validate order
 	if flags.order != "asc" && flags.order != "desc" {
-		return writeError(cmd, "invalid_order", "order must be 'asc' or 'desc'")
+		return common.WriteError(cmd, "invalid_order", "order must be 'asc' or 'desc'")
 	}
 
 	// Check API key
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return writeError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
 	}
 
 	client := oai.NewClient()
@@ -74,12 +75,12 @@ func runVideoList(cmd *cobra.Command, flags *videoListFlags) error {
 
 	page, err := client.Videos.List(ctx, params)
 	if err != nil {
-		return handleVideoAPIError(cmd, err)
+		return handleAPIError(cmd, err)
 	}
 
-	videos := make([]videoListItem, 0)
+	videos := make([]listItem, 0)
 	for _, v := range page.Data {
-		videos = append(videos, videoListItem{
+		videos = append(videos, listItem{
 			VideoID:   v.ID,
 			Status:    string(v.Status),
 			Model:     string(v.Model),
@@ -91,11 +92,11 @@ func runVideoList(cmd *cobra.Command, flags *videoListFlags) error {
 		})
 	}
 
-	result := videoListResponse{
+	result := listResponse{
 		Success: true,
 		Videos:  videos,
 		Count:   len(videos),
 	}
 
-	return writeSuccess(cmd, result)
+	return common.WriteSuccess(cmd, result)
 }

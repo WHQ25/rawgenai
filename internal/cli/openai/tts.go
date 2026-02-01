@@ -2,7 +2,6 @@ package openai
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
@@ -37,16 +37,6 @@ type ttsResponse struct {
 	File    string `json:"file,omitempty"`
 	Model   string `json:"model,omitempty"`
 	Voice   string `json:"voice,omitempty"`
-}
-
-type errorResponse struct {
-	Success bool        `json:"success"`
-	Error   *errorInfo  `json:"error"`
-}
-
-type errorInfo struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
 }
 
 var ttsCmd = newTTSCmd()
@@ -79,35 +69,35 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 	// Get text from args, file, or stdin
 	text, err := getText(args, flags.file, cmd.InOrStdin())
 	if err != nil {
-		return writeError(cmd, "missing_text", err.Error())
+		return common.WriteError(cmd, "missing_text", err.Error())
 	}
 
 	// Validate output
 	if flags.output == "" {
-		return writeError(cmd, "missing_output", "output file is required, use -o flag")
+		return common.WriteError(cmd, "missing_output", "output file is required, use -o flag")
 	}
 
 	// Validate format
 	ext := strings.ToLower(filepath.Ext(flags.output))
 	responseFormat, ok := supportedFormats[ext]
 	if !ok {
-		return writeError(cmd, "unsupported_format", fmt.Sprintf("unsupported format '%s', supported: mp3, opus, aac, flac, wav, pcm", ext))
+		return common.WriteError(cmd, "unsupported_format", fmt.Sprintf("unsupported format '%s', supported: mp3, opus, aac, flac, wav, pcm", ext))
 	}
 
 	// Validate speed
 	if flags.speed < 0.25 || flags.speed > 4.0 {
-		return writeError(cmd, "invalid_speed", "speed must be between 0.25 and 4.0")
+		return common.WriteError(cmd, "invalid_speed", "speed must be between 0.25 and 4.0")
 	}
 
 	// Validate instructions compatibility
 	if flags.instructions != "" && (flags.model == "tts-1" || flags.model == "tts-1-hd") {
-		return writeError(cmd, "invalid_parameter", "--instructions is not supported by model '"+flags.model+"', use 'gpt-4o-mini-tts' instead")
+		return common.WriteError(cmd, "invalid_parameter", "--instructions is not supported by model '"+flags.model+"', use 'gpt-4o-mini-tts' instead")
 	}
 
 	// Check API key
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return writeError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
 	}
 
 	// Call OpenAI API
@@ -142,13 +132,13 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 	// Write to file
 	outFile, err := os.Create(absPath)
 	if err != nil {
-		return writeError(cmd, "output_write_error", fmt.Sprintf("cannot create output file: %s", err.Error()))
+		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot create output file: %s", err.Error()))
 	}
 	defer outFile.Close()
 
 	_, err = io.Copy(outFile, resp.Body)
 	if err != nil {
-		return writeError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
+		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
 	}
 
 	// Return success
@@ -158,7 +148,7 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 		Model:   flags.model,
 		Voice:   flags.voice,
 	}
-	return writeSuccess(cmd, result)
+	return common.WriteSuccess(cmd, result)
 }
 
 func handleAPIError(cmd *cobra.Command, err error) error {
@@ -166,30 +156,30 @@ func handleAPIError(cmd *cobra.Command, err error) error {
 	if errors.As(err, &apiErr) {
 		switch apiErr.StatusCode {
 		case 400:
-			return writeError(cmd, "invalid_request", apiErr.Message)
+			return common.WriteError(cmd, "invalid_request", apiErr.Message)
 		case 401:
-			return writeError(cmd, "invalid_api_key", "API key is invalid or revoked")
+			return common.WriteError(cmd, "invalid_api_key", "API key is invalid or revoked")
 		case 403:
-			return writeError(cmd, "region_not_supported", "Region/country not supported")
+			return common.WriteError(cmd, "region_not_supported", "Region/country not supported")
 		case 429:
 			if strings.Contains(apiErr.Message, "quota") {
-				return writeError(cmd, "quota_exceeded", apiErr.Message)
+				return common.WriteError(cmd, "quota_exceeded", apiErr.Message)
 			}
-			return writeError(cmd, "rate_limit", apiErr.Message)
+			return common.WriteError(cmd, "rate_limit", apiErr.Message)
 		case 500:
-			return writeError(cmd, "server_error", "OpenAI server error")
+			return common.WriteError(cmd, "server_error", "OpenAI server error")
 		case 503:
-			return writeError(cmd, "server_overloaded", "OpenAI server overloaded")
+			return common.WriteError(cmd, "server_overloaded", "OpenAI server overloaded")
 		default:
-			return writeError(cmd, "api_error", apiErr.Message)
+			return common.WriteError(cmd, "api_error", apiErr.Message)
 		}
 	}
 
 	// Network errors
 	if strings.Contains(err.Error(), "timeout") {
-		return writeError(cmd, "timeout", "Request timed out")
+		return common.WriteError(cmd, "timeout", "Request timed out")
 	}
-	return writeError(cmd, "connection_error", fmt.Sprintf("Cannot connect to OpenAI API: %s", err.Error()))
+	return common.WriteError(cmd, "connection_error", fmt.Sprintf("Cannot connect to OpenAI API: %s", err.Error()))
 }
 
 func getText(args []string, filePath string, stdin io.Reader) (string, error) {
@@ -235,23 +225,4 @@ func getText(args []string, filePath string, stdin io.Reader) (string, error) {
 	}
 
 	return "", errors.New("no text provided, use positional argument, --file flag, or pipe from stdin")
-}
-
-func writeError(cmd *cobra.Command, code, message string) error {
-	resp := errorResponse{
-		Success: false,
-		Error: &errorInfo{
-			Code:    code,
-			Message: message,
-		},
-	}
-	output, _ := json.Marshal(resp)
-	fmt.Fprintln(cmd.ErrOrStderr(), string(output))
-	return errors.New(code)
-}
-
-func writeSuccess(cmd *cobra.Command, data any) error {
-	output, _ := json.Marshal(data)
-	fmt.Fprintln(cmd.OutOrStdout(), string(output))
-	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/spf13/cobra"
@@ -81,64 +82,64 @@ func runImage(cmd *cobra.Command, args []string, flags *imageFlags) error {
 	// Get prompt
 	prompt, err := getText(args, flags.file, cmd.InOrStdin())
 	if err != nil {
-		return writeError(cmd, "missing_prompt", err.Error())
+		return common.WriteError(cmd, "missing_prompt", err.Error())
 	}
 
 	// Validate output
 	if flags.output == "" {
-		return writeError(cmd, "missing_output", "output file is required, use -o flag")
+		return common.WriteError(cmd, "missing_output", "output file is required, use -o flag")
 	}
 
 	// Validate format
 	ext := strings.ToLower(filepath.Ext(flags.output))
 	outputFormat, ok := supportedImageFormats[ext]
 	if !ok {
-		return writeError(cmd, "unsupported_format", fmt.Sprintf("unsupported format '%s', supported: png, jpeg, jpg, webp", ext))
+		return common.WriteError(cmd, "unsupported_format", fmt.Sprintf("unsupported format '%s', supported: png, jpeg, jpg, webp", ext))
 	}
 
 	// Validate compression
 	if flags.compression < 0 || flags.compression > 100 {
-		return writeError(cmd, "invalid_compression", "compression must be between 0 and 100")
+		return common.WriteError(cmd, "invalid_compression", "compression must be between 0 and 100")
 	}
 
 	// Validate fidelity
 	if flags.fidelity != "high" && flags.fidelity != "low" {
-		return writeError(cmd, "invalid_fidelity", "fidelity must be 'high' or 'low'")
+		return common.WriteError(cmd, "invalid_fidelity", "fidelity must be 'high' or 'low'")
 	}
 
 	// Validate transparent background requires png or webp
 	if flags.background == "transparent" && ext != ".png" && ext != ".webp" {
-		return writeError(cmd, "transparent_requires_png_webp", "--background=transparent requires .png or .webp output")
+		return common.WriteError(cmd, "transparent_requires_png_webp", "--background=transparent requires .png or .webp output")
 	}
 
 	// Validate mask requires image
 	if flags.mask != "" && len(flags.images) == 0 {
-		return writeError(cmd, "mask_requires_image", "--mask requires at least one --image")
+		return common.WriteError(cmd, "mask_requires_image", "--mask requires at least one --image")
 	}
 
 	// Validate image count
 	if len(flags.images) > 16 {
-		return writeError(cmd, "too_many_images", "maximum 16 reference images allowed")
+		return common.WriteError(cmd, "too_many_images", "maximum 16 reference images allowed")
 	}
 
 	// Validate image files exist
 	for _, img := range flags.images {
 		if _, err := os.Stat(img); os.IsNotExist(err) {
-			return writeError(cmd, "file_not_found", fmt.Sprintf("image file not found: %s", img))
+			return common.WriteError(cmd, "file_not_found", fmt.Sprintf("image file not found: %s", img))
 		}
 	}
 
 	// Validate mask file exists
 	if flags.mask != "" {
 		if _, err := os.Stat(flags.mask); os.IsNotExist(err) {
-			return writeError(cmd, "file_not_found", fmt.Sprintf("mask file not found: %s", flags.mask))
+			return common.WriteError(cmd, "file_not_found", fmt.Sprintf("mask file not found: %s", flags.mask))
 		}
 	}
 
 	// Check API key
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return writeError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
 	}
 
 	// Build input content
@@ -150,7 +151,7 @@ func runImage(cmd *cobra.Command, args []string, flags *imageFlags) error {
 	for _, imgPath := range flags.images {
 		imgData, err := os.ReadFile(imgPath)
 		if err != nil {
-			return writeError(cmd, "file_not_found", fmt.Sprintf("cannot read image file: %s", err.Error()))
+			return common.WriteError(cmd, "file_not_found", fmt.Sprintf("cannot read image file: %s", err.Error()))
 		}
 
 		mimeType := getMimeType(imgPath)
@@ -189,7 +190,7 @@ func runImage(cmd *cobra.Command, args []string, flags *imageFlags) error {
 	if flags.mask != "" {
 		maskData, err := os.ReadFile(flags.mask)
 		if err != nil {
-			return writeError(cmd, "file_not_found", fmt.Sprintf("cannot read mask file: %s", err.Error()))
+			return common.WriteError(cmd, "file_not_found", fmt.Sprintf("cannot read mask file: %s", err.Error()))
 		}
 
 		mimeType := getMimeType(flags.mask)
@@ -246,13 +247,13 @@ func runImage(cmd *cobra.Command, args []string, flags *imageFlags) error {
 	}
 
 	if imageBase64 == "" {
-		return writeError(cmd, "no_image", "no image generated in response")
+		return common.WriteError(cmd, "no_image", "no image generated in response")
 	}
 
 	// Decode and save image
 	imgData, err := base64.StdEncoding.DecodeString(imageBase64)
 	if err != nil {
-		return writeError(cmd, "decode_error", fmt.Sprintf("cannot decode image: %s", err.Error()))
+		return common.WriteError(cmd, "decode_error", fmt.Sprintf("cannot decode image: %s", err.Error()))
 	}
 
 	absPath, err := filepath.Abs(flags.output)
@@ -261,10 +262,10 @@ func runImage(cmd *cobra.Command, args []string, flags *imageFlags) error {
 	}
 
 	if err := os.WriteFile(absPath, imgData, 0644); err != nil {
-		return writeError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
+		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
 	}
 
-	return writeSuccess(cmd, imageResponse{
+	return common.WriteSuccess(cmd, imageResponse{
 		Success:    true,
 		File:       absPath,
 		Model:      flags.model,

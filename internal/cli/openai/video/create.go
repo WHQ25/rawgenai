@@ -1,4 +1,4 @@
-package openai
+package video
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +33,7 @@ var validImageFormats = map[string]bool{
 	".webp": true,
 }
 
-type videoCreateFlags struct {
+type createFlags struct {
 	file     string
 	image    string
 	model    string
@@ -40,7 +41,7 @@ type videoCreateFlags struct {
 	duration int
 }
 
-type videoCreateResponse struct {
+type createResponse struct {
 	Success   bool   `json:"success"`
 	VideoID   string `json:"video_id"`
 	Status    string `json:"status"`
@@ -50,10 +51,10 @@ type videoCreateResponse struct {
 	CreatedAt int64  `json:"created_at"`
 }
 
-var videoCreateCmd = newVideoCreateCmd()
+var createCmd = newCreateCmd()
 
-func newVideoCreateCmd() *cobra.Command {
-	flags := &videoCreateFlags{}
+func newCreateCmd() *cobra.Command {
+	flags := &createFlags{}
 
 	cmd := &cobra.Command{
 		Use:           "create [prompt]",
@@ -62,7 +63,7 @@ func newVideoCreateCmd() *cobra.Command {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runVideoCreate(cmd, args, flags)
+			return runCreate(cmd, args, flags)
 		},
 	}
 
@@ -75,37 +76,37 @@ func newVideoCreateCmd() *cobra.Command {
 	return cmd
 }
 
-func runVideoCreate(cmd *cobra.Command, args []string, flags *videoCreateFlags) error {
+func runCreate(cmd *cobra.Command, args []string, flags *createFlags) error {
 	// Get prompt from args, file, or stdin
-	prompt, err := getVideoPrompt(args, flags.file, cmd.InOrStdin())
+	prompt, err := getPrompt(args, flags.file, cmd.InOrStdin())
 	if err != nil {
-		return writeError(cmd, "missing_prompt", err.Error())
+		return common.WriteError(cmd, "missing_prompt", err.Error())
 	}
 
 	// Validate size
 	if !validSizes[flags.size] {
-		return writeError(cmd, "invalid_size", fmt.Sprintf("invalid size '%s', allowed: 1280x720, 720x1280, 1792x1024, 1024x1792", flags.size))
+		return common.WriteError(cmd, "invalid_size", fmt.Sprintf("invalid size '%s', allowed: 1280x720, 720x1280, 1792x1024, 1024x1792", flags.size))
 	}
 
 	// Validate duration
 	if !validDurations[flags.duration] {
-		return writeError(cmd, "invalid_duration", fmt.Sprintf("invalid duration '%d', allowed: 4, 8, 12", flags.duration))
+		return common.WriteError(cmd, "invalid_duration", fmt.Sprintf("invalid duration '%d', allowed: 4, 8, 12", flags.duration))
 	}
 
 	// Check API key
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return writeError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
 	}
 
 	// Validate image if provided
 	if flags.image != "" {
 		if _, err := os.Stat(flags.image); os.IsNotExist(err) {
-			return writeError(cmd, "image_not_found", fmt.Sprintf("image file not found: %s", flags.image))
+			return common.WriteError(cmd, "image_not_found", fmt.Sprintf("image file not found: %s", flags.image))
 		}
 		imgExt := strings.ToLower(filepath.Ext(flags.image))
 		if !validImageFormats[imgExt] {
-			return writeError(cmd, "invalid_image_format", fmt.Sprintf("unsupported image format '%s', supported: jpg, jpeg, png, webp", imgExt))
+			return common.WriteError(cmd, "invalid_image_format", fmt.Sprintf("unsupported image format '%s', supported: jpg, jpeg, png, webp", imgExt))
 		}
 	}
 
@@ -124,7 +125,7 @@ func runVideoCreate(cmd *cobra.Command, args []string, flags *videoCreateFlags) 
 	if flags.image != "" {
 		imgFile, err := os.Open(flags.image)
 		if err != nil {
-			return writeError(cmd, "image_not_found", fmt.Sprintf("cannot open image file: %s", err.Error()))
+			return common.WriteError(cmd, "image_not_found", fmt.Sprintf("cannot open image file: %s", err.Error()))
 		}
 		defer imgFile.Close()
 		params.InputReference = oai.File(imgFile, filepath.Base(flags.image), getImageMimeType(flags.image))
@@ -133,10 +134,10 @@ func runVideoCreate(cmd *cobra.Command, args []string, flags *videoCreateFlags) 
 	// Create video job
 	video, err := client.Videos.New(ctx, params)
 	if err != nil {
-		return handleVideoAPIError(cmd, err)
+		return handleAPIError(cmd, err)
 	}
 
-	result := videoCreateResponse{
+	result := createResponse{
 		Success:   true,
 		VideoID:   video.ID,
 		Status:    string(video.Status),
@@ -146,10 +147,10 @@ func runVideoCreate(cmd *cobra.Command, args []string, flags *videoCreateFlags) 
 		CreatedAt: video.CreatedAt,
 	}
 
-	return writeSuccess(cmd, result)
+	return common.WriteSuccess(cmd, result)
 }
 
-func getVideoPrompt(args []string, filePath string, stdin io.Reader) (string, error) {
+func getPrompt(args []string, filePath string, stdin io.Reader) (string, error) {
 	// From positional argument
 	if len(args) > 0 {
 		prompt := strings.TrimSpace(strings.Join(args, " "))

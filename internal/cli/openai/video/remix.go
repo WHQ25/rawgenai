@@ -1,4 +1,4 @@
-package openai
+package video
 
 import (
 	"context"
@@ -7,26 +7,27 @@ import (
 	"os"
 	"strings"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
 
-type videoRemixFlags struct {
+type remixFlags struct {
 	file string
 }
 
-type videoRemixResponse struct {
-	Success         bool   `json:"success"`
-	VideoID         string `json:"video_id"`
-	Status          string `json:"status"`
-	RemixedFromID   string `json:"remixed_from_id"`
-	CreatedAt       int64  `json:"created_at"`
+type remixResponse struct {
+	Success       bool   `json:"success"`
+	VideoID       string `json:"video_id"`
+	Status        string `json:"status"`
+	RemixedFromID string `json:"remixed_from_id"`
+	CreatedAt     int64  `json:"created_at"`
 }
 
-var videoRemixCmd = newVideoRemixCmd()
+var remixCmd = newRemixCmd()
 
-func newVideoRemixCmd() *cobra.Command {
-	flags := &videoRemixFlags{}
+func newRemixCmd() *cobra.Command {
+	flags := &remixFlags{}
 
 	cmd := &cobra.Command{
 		Use:           "remix <video_id> [prompt]",
@@ -36,7 +37,7 @@ func newVideoRemixCmd() *cobra.Command {
 		SilenceUsage:  true,
 		Args:          cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runVideoRemix(cmd, args, flags)
+			return runRemix(cmd, args, flags)
 		},
 	}
 
@@ -45,23 +46,23 @@ func newVideoRemixCmd() *cobra.Command {
 	return cmd
 }
 
-func runVideoRemix(cmd *cobra.Command, args []string, flags *videoRemixFlags) error {
+func runRemix(cmd *cobra.Command, args []string, flags *remixFlags) error {
 	videoID := strings.TrimSpace(args[0])
 	if videoID == "" {
-		return writeError(cmd, "missing_video_id", "video_id is required")
+		return common.WriteError(cmd, "missing_video_id", "video_id is required")
 	}
 
 	// Get prompt from remaining args, file, or stdin
 	promptArgs := args[1:]
 	prompt, err := getRemixPrompt(promptArgs, flags.file, cmd.InOrStdin())
 	if err != nil {
-		return writeError(cmd, "missing_prompt", err.Error())
+		return common.WriteError(cmd, "missing_prompt", err.Error())
 	}
 
 	// Check API key
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return writeError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
 	}
 
 	client := oai.NewClient()
@@ -73,10 +74,10 @@ func runVideoRemix(cmd *cobra.Command, args []string, flags *videoRemixFlags) er
 
 	video, err := client.Videos.Remix(ctx, videoID, params)
 	if err != nil {
-		return handleVideoAPIError(cmd, err)
+		return handleAPIError(cmd, err)
 	}
 
-	result := videoRemixResponse{
+	result := remixResponse{
 		Success:       true,
 		VideoID:       video.ID,
 		Status:        string(video.Status),
@@ -84,7 +85,7 @@ func runVideoRemix(cmd *cobra.Command, args []string, flags *videoRemixFlags) er
 		CreatedAt:     video.CreatedAt,
 	}
 
-	return writeSuccess(cmd, result)
+	return common.WriteSuccess(cmd, result)
 }
 
 func getRemixPrompt(args []string, filePath string, stdin io.Reader) (string, error) {
