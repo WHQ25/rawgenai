@@ -1,0 +1,79 @@
+version: 2
+
+project_name: rawgenai
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: rawgenai
+    main: ./cmd/rawgenai
+    binary: rawgenai
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/WHQ25/rawgenai/internal/cli.version={{.Version}}
+      - -X github.com/WHQ25/rawgenai/internal/cli.commit={{.Commit}}
+      - -X github.com/WHQ25/rawgenai/internal/cli.date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE*
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: WHQ25
+    name: rawgenai
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
+
+brews:
+  - repository:
+      owner: WHQ25
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: https://github.com/WHQ25/rawgenai
+    description: CLI tool for AI agents to access raw AI capabilities (TTS, STT, Image, Video)
+    license: MIT
+    install: |
+      bin.install "rawgenai"
+    test: |
+      system "#{bin}/rawgenai", "--version"
