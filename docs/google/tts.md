@@ -47,6 +47,74 @@ rawgenai google tts "Read like a news anchor: Breaking news today..." -o news.wa
 rawgenai google tts "Say excitedly: We won the championship!" -o excited.wav
 ```
 
+### Advanced Prompting (Director Mode)
+
+For complex performances, think of yourself as a **director** guiding a virtual voice actor. Structure your prompt with these elements:
+
+| Element | Purpose | Example |
+|---------|---------|---------|
+| **Audio Profile** | Character identity | `You are a master storyteller` |
+| **Scene** | Environment & mood | `It's a cozy fireplace evening` |
+| **Director's Notes** | Style, pace, accent | `[Speak softly, mysteriously]` |
+| **Transcript** | The actual text | The story content |
+
+**Example: Storytelling with Emotion**
+
+```bash
+rawgenai google tts "$(cat <<'EOF'
+You are a master storyteller. Tell this story with rich emotion:
+
+[Start softly, mysteriously]
+Long ago, in a kingdom shrouded in mist, there lived a young girl named Luna.
+
+[Build excitement gradually]
+One fateful night, the stars warned her: "The Shadow King awakens!"
+
+[Dramatic pause, then with determination]
+Luna clutched her grandmother's crystal pendant and set out into the darkness.
+
+[Triumphant crescendo]
+A blinding radiance burst forth! The shadows dissolved into nothing!
+
+[Warm, gentle conclusion]
+And so, little Luna saved her kingdom. The end.
+EOF
+)" --speak
+```
+
+**Director's Notes Syntax:**
+
+Use `[brackets]` to mark emotional transitions:
+- `[Start softly]` - Begin gently
+- `[Build excitement]` - Increase energy
+- `[Dramatic pause]` - Add tension
+- `[Whisper]` - Lower volume
+- `[Triumphant]` - Powerful delivery
+
+**Style Keywords:**
+
+| Category | Examples |
+|----------|----------|
+| **Emotion** | cheerfully, sadly, angrily, nervously, excitedly |
+| **Pace** | slowly, quickly, with pauses, rapid-fire |
+| **Volume** | whisper, softly, loudly, with projection |
+| **Character** | like a news anchor, as a storyteller, like a podcast host |
+| **Accent** | British accent, Southern drawl, Valley girl |
+
+**Multi-speaker with Personality:**
+
+```bash
+rawgenai google tts "$(cat <<'EOF'
+Make Speaker1 sound tired and bored, and Speaker2 sound excited:
+
+Speaker1: So... what's on the agenda today?
+Speaker2: You're never going to guess what happened!
+EOF
+)" --speakers "Speaker1=Enceladus,Speaker2=Puck" -o conversation.wav
+```
+
+> **Tip:** Match voice characteristics to emotions. Use *Enceladus* (breathy) for "tired", *Puck* (upbeat) for "excited".
+
 ### Advanced Examples
 
 ```bash
