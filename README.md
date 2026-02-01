@@ -1,6 +1,6 @@
 # rawgenai
 
-A CLI tool designed for AI agents to access raw AI capabilities.
+A CLI tool designed for AI agents to access raw generative AI capabilities.
 
 ## Design Philosophy
 
@@ -31,8 +31,7 @@ This design:
 
 **Homebrew (macOS):**
 ```bash
-brew tap WHQ25/tap
-brew install rawgenai
+brew install WHQ25/tap/rawgenai
 ```
 
 **Script (macOS/Linux):**
@@ -61,30 +60,20 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 
 | Provider | TTS | STT | Image | Video |
 |----------|:---:|:---:|:-----:|:-----:|
-| OpenAI | ✅ | ✅ | ✅ | - |
-| Google | ✅ | ✅ | ✅ | - |
+| OpenAI | ✅ | ✅ | ✅ | ✅ |
+| Google | ✅ | ✅ | ✅ | ✅ |
 | ElevenLabs | ✅ | - | - | - |
 | Grok | - | - | ✅ | ✅ |
 
 ## CLI Structure
 
 ```
-rawgenai
-├── openai
-│   ├── tts      # Text to Speech
-│   ├── stt      # Speech to Text
-│   └── image    # Image generation
-├── google
-│   ├── tts      # Text to Speech
-│   ├── stt      # Speech to Text
-│   └── image    # Image generation
-├── elevenlabs
-│   └── tts      # Text to Speech
-├── grok
-│   ├── image    # Image generation
-│   └── video    # Video generation
-└── version      # Print version info
+rawgenai <provider> <action> [options]
 ```
+
+Providers: `openai`, `google`, `elevenlabs`, `grok`
+
+Actions: `tts`, `stt`, `image`, `video` (varies by provider)
 
 ## Output Format
 

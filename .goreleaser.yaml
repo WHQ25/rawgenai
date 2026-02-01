@@ -22,8 +22,6 @@ builds:
     ldflags:
       - -s -w
       - -X github.com/WHQ25/rawgenai/internal/cli.version={{.Version}}
-      - -X github.com/WHQ25/rawgenai/internal/cli.commit={{.Commit}}
-      - -X github.com/WHQ25/rawgenai/internal/cli.date={{.Date}}
 
   # Linux (CGO enabled for oto/ALSA)
   - id: rawgenai-linux
@@ -38,8 +36,6 @@ builds:
     ldflags:
       - -s -w
       - -X github.com/WHQ25/rawgenai/internal/cli.version={{.Version}}
-      - -X github.com/WHQ25/rawgenai/internal/cli.commit={{.Commit}}
-      - -X github.com/WHQ25/rawgenai/internal/cli.date={{.Date}}
 
 archives:
   - id: default
