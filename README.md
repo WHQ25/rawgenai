@@ -27,6 +27,27 @@ This design:
 - Makes it clear which provider is being used
 - Simplifies adding new providers
 
+## Installation
+
+**Homebrew (macOS):**
+```bash
+brew tap WHQ25/tap
+brew install rawgenai
+```
+
+**Script (macOS/Linux):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/WHQ25/rawgenai/main/install.sh | bash
+```
+
+**Binary Download:**
+Download from [GitHub Releases](https://github.com/WHQ25/rawgenai/releases)
+
+**From Source:**
+```bash
+go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
+```
+
 ## Capabilities
 
 | Capability | Description |
@@ -34,7 +55,7 @@ This design:
 | **TTS** | Text to Speech - Convert text to audio |
 | **STT** | Speech to Text - Transcribe audio to text |
 | **Image** | Generate images from text prompts |
-| **Video** | Generate videos from text/keyframes |
+| **Video** | Generate videos from text/image prompts |
 
 ## Supported Providers
 
@@ -43,8 +64,7 @@ This design:
 | OpenAI | ✅ | ✅ | ✅ | - |
 | Google | ✅ | ✅ | ✅ | - |
 | ElevenLabs | ✅ | - | - | - |
-| Luma | - | - | - | ✅ |
-| Replicate | - | - | - | ✅ |
+| Grok | - | - | ✅ | ✅ |
 
 ## CLI Structure
 
@@ -60,15 +80,10 @@ rawgenai
 │   └── image    # Image generation
 ├── elevenlabs
 │   └── tts      # Text to Speech
-├── luma
-│   └── video    # Video generation (sync + async)
-├── replicate
-│   └── video    # Video generation (sync + async)
-└── config
-    ├── init     # Initialize config file
-    ├── set      # Set config value
-    ├── get      # Get config value
-    └── show     # Show all config
+├── grok
+│   ├── image    # Image generation
+│   └── video    # Video generation
+└── version      # Print version info
 ```
 
 ## Output Format
@@ -96,35 +111,13 @@ All output is JSON.
 
 ## Configuration
 
-**Priority**: CLI flags > Environment variables > Config file > Defaults
-
-**Config file**: `~/.config/rawgenai/config.yaml`
+**Priority**: CLI flags > Environment variables > Defaults
 
 **Environment variables**:
-- `OPENAI_API_KEY`
-- `ELEVENLABS_API_KEY`
-- `LUMA_API_KEY`
-- `REPLICATE_API_TOKEN`
-
-## Project Structure
-
-```
-rawgenai/
-├── cmd/rawgenai/
-│   └── main.go
-├── internal/
-│   ├── cli/
-│   │   ├── root.go
-│   │   ├── config.go
-│   │   ├── openai/
-│   │   ├── elevenlabs/
-│   │   ├── luma/
-│   │   └── replicate/
-│   ├── config/
-│   └── output/
-├── go.mod
-└── README.md
-```
+- `OPENAI_API_KEY` - OpenAI
+- `GEMINI_API_KEY` - Google Gemini
+- `ELEVENLABS_API_KEY` - ElevenLabs
+- `XAI_API_KEY` - Grok
 
 ## License
 
