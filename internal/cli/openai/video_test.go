@@ -7,9 +7,11 @@ import (
 	"testing"
 )
 
-func TestVideo_MissingPrompt(t *testing.T) {
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "-o", "output.mp4")
+// ============ video create tests ============
+
+func TestVideoCreate_MissingPrompt(t *testing.T) {
+	cmd := newVideoCreateCmd()
+	_, stderr, err := executeCommand(cmd)
 
 	if err == nil {
 		t.Fatal("expected error for missing prompt")
@@ -30,47 +32,11 @@ func TestVideo_MissingPrompt(t *testing.T) {
 	}
 }
 
-func TestVideo_MissingOutput(t *testing.T) {
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "A cat playing piano")
+func TestVideoCreate_InvalidSize(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "")
 
-	if err == nil {
-		t.Fatal("expected error for missing output")
-	}
-
-	var resp map[string]any
-	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
-		t.Fatalf("expected JSON error output, got: %s", stderr)
-	}
-
-	errorObj := resp["error"].(map[string]any)
-	if errorObj["code"] != "missing_output" {
-		t.Errorf("expected error code 'missing_output', got: %s", errorObj["code"])
-	}
-}
-
-func TestVideo_InvalidFormat(t *testing.T) {
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "A cat", "-o", "out.avi")
-
-	if err == nil {
-		t.Fatal("expected error for invalid format")
-	}
-
-	var resp map[string]any
-	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
-		t.Fatalf("expected JSON error output, got: %s", stderr)
-	}
-
-	errorObj := resp["error"].(map[string]any)
-	if errorObj["code"] != "invalid_format" {
-		t.Errorf("expected error code 'invalid_format', got: %s", errorObj["code"])
-	}
-}
-
-func TestVideo_InvalidSize(t *testing.T) {
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "A cat", "-o", "out.mp4", "--size", "1920x1080")
+	cmd := newVideoCreateCmd()
+	_, stderr, err := executeCommand(cmd, "A cat", "--size", "1920x1080")
 
 	if err == nil {
 		t.Fatal("expected error for invalid size")
@@ -87,10 +53,10 @@ func TestVideo_InvalidSize(t *testing.T) {
 	}
 }
 
-func TestVideo_InvalidSeconds(t *testing.T) {
+func TestVideoCreate_InvalidDuration(t *testing.T) {
 	tests := []struct {
-		name    string
-		seconds string
+		name     string
+		duration string
 	}{
 		{"too short", "2"},
 		{"not allowed", "6"},
@@ -99,11 +65,11 @@ func TestVideo_InvalidSeconds(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd := newVideoCmd()
-			_, stderr, err := executeCommand(cmd, "A cat", "-o", "out.mp4", "--seconds", tt.seconds)
+			cmd := newVideoCreateCmd()
+			_, stderr, err := executeCommand(cmd, "A cat", "--duration", tt.duration)
 
 			if err == nil {
-				t.Fatal("expected error for invalid seconds")
+				t.Fatal("expected error for invalid duration")
 			}
 
 			var resp map[string]any
@@ -112,18 +78,18 @@ func TestVideo_InvalidSeconds(t *testing.T) {
 			}
 
 			errorObj := resp["error"].(map[string]any)
-			if errorObj["code"] != "invalid_seconds" {
-				t.Errorf("expected error code 'invalid_seconds', got: %s", errorObj["code"])
+			if errorObj["code"] != "invalid_duration" {
+				t.Errorf("expected error code 'invalid_duration', got: %s", errorObj["code"])
 			}
 		})
 	}
 }
 
-func TestVideo_MissingAPIKey(t *testing.T) {
+func TestVideoCreate_MissingAPIKey(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "A cat", "-o", "out.mp4")
+	cmd := newVideoCreateCmd()
+	_, stderr, err := executeCommand(cmd, "A cat")
 
 	if err == nil {
 		t.Fatal("expected error for missing API key")
@@ -140,10 +106,10 @@ func TestVideo_MissingAPIKey(t *testing.T) {
 	}
 }
 
-func TestVideo_ValidFlags(t *testing.T) {
-	cmd := newVideoCmd()
+func TestVideoCreate_ValidFlags(t *testing.T) {
+	cmd := newVideoCreateCmd()
 
-	flags := []string{"output", "file", "image", "model", "size", "seconds", "no-wait", "timeout"}
+	flags := []string{"file", "image", "model", "size", "duration"}
 	for _, flag := range flags {
 		if cmd.Flag(flag) == nil {
 			t.Errorf("expected --%s flag", flag)
@@ -151,8 +117,8 @@ func TestVideo_ValidFlags(t *testing.T) {
 	}
 }
 
-func TestVideo_DefaultValues(t *testing.T) {
-	cmd := newVideoCmd()
+func TestVideoCreate_DefaultValues(t *testing.T) {
+	cmd := newVideoCreateCmd()
 
 	if cmd.Flag("model").DefValue != "sora-2" {
 		t.Errorf("expected default model 'sora-2', got: %s", cmd.Flag("model").DefValue)
@@ -160,18 +126,12 @@ func TestVideo_DefaultValues(t *testing.T) {
 	if cmd.Flag("size").DefValue != "1280x720" {
 		t.Errorf("expected default size '1280x720', got: %s", cmd.Flag("size").DefValue)
 	}
-	if cmd.Flag("seconds").DefValue != "4" {
-		t.Errorf("expected default seconds '4', got: %s", cmd.Flag("seconds").DefValue)
-	}
-	if cmd.Flag("timeout").DefValue != "600" {
-		t.Errorf("expected default timeout '600', got: %s", cmd.Flag("timeout").DefValue)
-	}
-	if cmd.Flag("no-wait").DefValue != "false" {
-		t.Errorf("expected default no-wait 'false', got: %s", cmd.Flag("no-wait").DefValue)
+	if cmd.Flag("duration").DefValue != "4" {
+		t.Errorf("expected default duration '4', got: %s", cmd.Flag("duration").DefValue)
 	}
 }
 
-func TestVideo_FromFile(t *testing.T) {
+func TestVideoCreate_FromFile(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "video_test_*.txt")
 	if err != nil {
 		t.Fatal(err)
@@ -184,8 +144,10 @@ func TestVideo_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name(), "-o", "out.mp4")
+	t.Setenv("OPENAI_API_KEY", "")
+
+	cmd := newVideoCreateCmd()
+	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name())
 
 	if err == nil {
 		t.Fatal("expected error (missing api key), got success")
@@ -202,9 +164,9 @@ func TestVideo_FromFile(t *testing.T) {
 	}
 }
 
-func TestVideo_FromFileNotFound(t *testing.T) {
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "--file", "/nonexistent/file.txt", "-o", "out.mp4")
+func TestVideoCreate_FromFileNotFound(t *testing.T) {
+	cmd := newVideoCreateCmd()
+	_, stderr, err := executeCommand(cmd, "--file", "/nonexistent/file.txt")
 
 	if err == nil {
 		t.Fatal("expected error for file not found")
@@ -221,11 +183,13 @@ func TestVideo_FromFileNotFound(t *testing.T) {
 	}
 }
 
-func TestVideo_FromStdin(t *testing.T) {
-	cmd := newVideoCmd()
+func TestVideoCreate_FromStdin(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "")
+
+	cmd := newVideoCreateCmd()
 	cmd.SetIn(strings.NewReader("A cat playing piano"))
 
-	_, stderr, err := executeCommand(cmd, "-o", "out.mp4")
+	_, stderr, err := executeCommand(cmd)
 
 	if err == nil {
 		t.Fatal("expected error (missing api key), got success")
@@ -242,11 +206,11 @@ func TestVideo_FromStdin(t *testing.T) {
 	}
 }
 
-func TestVideo_ImageNotFound(t *testing.T) {
+func TestVideoCreate_ImageNotFound(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "test-key")
 
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "A cat", "-o", "out.mp4", "--image", "/nonexistent/image.jpg")
+	cmd := newVideoCreateCmd()
+	_, stderr, err := executeCommand(cmd, "A cat", "--image", "/nonexistent/image.jpg")
 
 	if err == nil {
 		t.Fatal("expected error for image not found")
@@ -263,10 +227,9 @@ func TestVideo_ImageNotFound(t *testing.T) {
 	}
 }
 
-func TestVideo_InvalidImageFormat(t *testing.T) {
+func TestVideoCreate_InvalidImageFormat(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "test-key")
 
-	// Create a temp file with invalid extension
 	tmpFile, err := os.CreateTemp("", "video_test_*.gif")
 	if err != nil {
 		t.Fatal(err)
@@ -274,8 +237,8 @@ func TestVideo_InvalidImageFormat(t *testing.T) {
 	defer os.Remove(tmpFile.Name())
 	tmpFile.Close()
 
-	cmd := newVideoCmd()
-	_, stderr, err := executeCommand(cmd, "A cat", "-o", "out.mp4", "--image", tmpFile.Name())
+	cmd := newVideoCreateCmd()
+	_, stderr, err := executeCommand(cmd, "A cat", "--image", tmpFile.Name())
 
 	if err == nil {
 		t.Fatal("expected error for invalid image format")
@@ -292,15 +255,15 @@ func TestVideo_InvalidImageFormat(t *testing.T) {
 	}
 }
 
-func TestVideo_ValidSizes(t *testing.T) {
+func TestVideoCreate_ValidSizes(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
 	validSizes := []string{"1280x720", "720x1280", "1792x1024", "1024x1792"}
 
 	for _, size := range validSizes {
 		t.Run(size, func(t *testing.T) {
-			cmd := newVideoCmd()
-			_, stderr, err := executeCommand(cmd, "A cat", "-o", "out.mp4", "--size", size)
+			cmd := newVideoCreateCmd()
+			_, stderr, err := executeCommand(cmd, "A cat", "--size", size)
 
 			if err == nil {
 				t.Fatal("expected error (missing api key)")
@@ -312,7 +275,6 @@ func TestVideo_ValidSizes(t *testing.T) {
 			}
 
 			errorObj := resp["error"].(map[string]any)
-			// Should pass size validation and fail on API key
 			if errorObj["code"] != "missing_api_key" {
 				t.Errorf("expected error code 'missing_api_key' (valid size), got: %s", errorObj["code"])
 			}
@@ -320,15 +282,15 @@ func TestVideo_ValidSizes(t *testing.T) {
 	}
 }
 
-func TestVideo_ValidSeconds(t *testing.T) {
+func TestVideoCreate_ValidDurations(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 
-	validSeconds := []string{"4", "8", "12"}
+	validDurations := []string{"4", "8", "12"}
 
-	for _, seconds := range validSeconds {
-		t.Run(seconds+"s", func(t *testing.T) {
-			cmd := newVideoCmd()
-			_, stderr, err := executeCommand(cmd, "A cat", "-o", "out.mp4", "--seconds", seconds)
+	for _, duration := range validDurations {
+		t.Run(duration+"s", func(t *testing.T) {
+			cmd := newVideoCreateCmd()
+			_, stderr, err := executeCommand(cmd, "A cat", "--duration", duration)
 
 			if err == nil {
 				t.Fatal("expected error (missing api key)")
@@ -340,10 +302,296 @@ func TestVideo_ValidSeconds(t *testing.T) {
 			}
 
 			errorObj := resp["error"].(map[string]any)
-			// Should pass seconds validation and fail on API key
 			if errorObj["code"] != "missing_api_key" {
-				t.Errorf("expected error code 'missing_api_key' (valid seconds), got: %s", errorObj["code"])
+				t.Errorf("expected error code 'missing_api_key' (valid duration), got: %s", errorObj["code"])
 			}
 		})
+	}
+}
+
+// ============ video status tests ============
+
+func TestVideoStatus_MissingVideoID(t *testing.T) {
+	cmd := newVideoStatusCmd()
+	_, _, err := executeCommand(cmd)
+
+	if err == nil {
+		t.Fatal("expected error for missing video_id")
+	}
+}
+
+func TestVideoStatus_MissingAPIKey(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "")
+
+	cmd := newVideoStatusCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123")
+
+	if err == nil {
+		t.Fatal("expected error for missing API key")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+// ============ video download tests ============
+
+func TestVideoDownload_MissingVideoID(t *testing.T) {
+	cmd := newVideoDownloadCmd()
+	_, _, err := executeCommand(cmd, "-o", "out.mp4")
+
+	if err == nil {
+		t.Fatal("expected error for missing video_id")
+	}
+}
+
+func TestVideoDownload_MissingOutput(t *testing.T) {
+	cmd := newVideoDownloadCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123")
+
+	if err == nil {
+		t.Fatal("expected error for missing output")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_output" {
+		t.Errorf("expected error code 'missing_output', got: %s", errorObj["code"])
+	}
+}
+
+func TestVideoDownload_InvalidFormat(t *testing.T) {
+	cmd := newVideoDownloadCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123", "-o", "out.avi")
+
+	if err == nil {
+		t.Fatal("expected error for invalid format")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "invalid_format" {
+		t.Errorf("expected error code 'invalid_format', got: %s", errorObj["code"])
+	}
+}
+
+func TestVideoDownload_InvalidVariant(t *testing.T) {
+	cmd := newVideoDownloadCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123", "-o", "out.mp4", "--variant", "invalid")
+
+	if err == nil {
+		t.Fatal("expected error for invalid variant")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "invalid_variant" {
+		t.Errorf("expected error code 'invalid_variant', got: %s", errorObj["code"])
+	}
+}
+
+func TestVideoDownload_ThumbnailRequiresJpg(t *testing.T) {
+	cmd := newVideoDownloadCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123", "-o", "out.mp4", "--variant", "thumbnail")
+
+	if err == nil {
+		t.Fatal("expected error for wrong extension")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "invalid_format" {
+		t.Errorf("expected error code 'invalid_format', got: %s", errorObj["code"])
+	}
+}
+
+func TestVideoDownload_MissingAPIKey(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "")
+
+	cmd := newVideoDownloadCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123", "-o", "out.mp4")
+
+	if err == nil {
+		t.Fatal("expected error for missing API key")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+func TestVideoDownload_ValidFlags(t *testing.T) {
+	cmd := newVideoDownloadCmd()
+
+	if cmd.Flag("output") == nil {
+		t.Error("expected --output flag")
+	}
+	if cmd.Flag("variant") == nil {
+		t.Error("expected --variant flag")
+	}
+}
+
+// ============ video list tests ============
+
+func TestVideoList_MissingAPIKey(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "")
+
+	cmd := newVideoListCmd()
+	_, stderr, err := executeCommand(cmd)
+
+	if err == nil {
+		t.Fatal("expected error for missing API key")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+func TestVideoList_InvalidOrder(t *testing.T) {
+	cmd := newVideoListCmd()
+	_, stderr, err := executeCommand(cmd, "--order", "invalid")
+
+	if err == nil {
+		t.Fatal("expected error for invalid order")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "invalid_order" {
+		t.Errorf("expected error code 'invalid_order', got: %s", errorObj["code"])
+	}
+}
+
+func TestVideoList_ValidFlags(t *testing.T) {
+	cmd := newVideoListCmd()
+
+	if cmd.Flag("limit") == nil {
+		t.Error("expected --limit flag")
+	}
+	if cmd.Flag("order") == nil {
+		t.Error("expected --order flag")
+	}
+}
+
+// ============ video delete tests ============
+
+func TestVideoDelete_MissingVideoID(t *testing.T) {
+	cmd := newVideoDeleteCmd()
+	_, _, err := executeCommand(cmd)
+
+	if err == nil {
+		t.Fatal("expected error for missing video_id")
+	}
+}
+
+func TestVideoDelete_MissingAPIKey(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "")
+
+	cmd := newVideoDeleteCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123")
+
+	if err == nil {
+		t.Fatal("expected error for missing API key")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+// ============ video remix tests ============
+
+func TestVideoRemix_MissingVideoID(t *testing.T) {
+	cmd := newVideoRemixCmd()
+	_, _, err := executeCommand(cmd)
+
+	if err == nil {
+		t.Fatal("expected error for missing video_id")
+	}
+}
+
+func TestVideoRemix_MissingPrompt(t *testing.T) {
+	cmd := newVideoRemixCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123")
+
+	if err == nil {
+		t.Fatal("expected error for missing prompt")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_prompt" {
+		t.Errorf("expected error code 'missing_prompt', got: %s", errorObj["code"])
+	}
+}
+
+func TestVideoRemix_MissingAPIKey(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "")
+
+	cmd := newVideoRemixCmd()
+	_, stderr, err := executeCommand(cmd, "video_abc123", "New prompt")
+
+	if err == nil {
+		t.Fatal("expected error for missing API key")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
 	}
 }

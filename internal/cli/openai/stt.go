@@ -141,6 +141,13 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 		return writeError(cmd, "missing_output", fmt.Sprintf("--%s format requires --output flag", flags.format))
 	}
 
+	// For srt/vtt, we'll use verbose_json and generate the format ourselves
+	// because openai-go doesn't support non-JSON response formats
+	generateSubtitles := flags.format == "srt" || flags.format == "vtt"
+	if generateSubtitles {
+		responseFormat = oai.AudioResponseFormatVerboseJSON
+	}
+
 	// Validate prompt compatibility
 	if flags.prompt != "" && flags.model == "gpt-4o-transcribe-diarize" {
 		return writeError(cmd, "invalid_parameter", "--prompt is not supported by model 'gpt-4o-transcribe-diarize'")
@@ -200,14 +207,21 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 	}
 
 	// Handle output based on format
-	if flags.format == "srt" || flags.format == "vtt" {
-		// Write subtitle content to file
+	if generateSubtitles {
+		// Generate SRT or VTT from verbose_json segments
 		absPath, err := filepath.Abs(flags.output)
 		if err != nil {
 			absPath = flags.output
 		}
 
-		if err := os.WriteFile(absPath, []byte(resp.Text), 0644); err != nil {
+		var subtitleContent string
+		if flags.format == "srt" {
+			subtitleContent = generateSRT(resp.Segments)
+		} else {
+			subtitleContent = generateVTT(resp.Segments)
+		}
+
+		if err := os.WriteFile(absPath, []byte(subtitleContent), 0644); err != nil {
 			return writeError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
 		}
 
@@ -258,6 +272,48 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 	}
 
 	return writeSuccess(cmd, result)
+}
+
+// formatTimeSRT formats seconds as SRT timestamp (HH:MM:SS,mmm)
+func formatTimeSRT(seconds float64) string {
+	h := int(seconds) / 3600
+	m := (int(seconds) % 3600) / 60
+	s := int(seconds) % 60
+	ms := int((seconds - float64(int(seconds))) * 1000)
+	return fmt.Sprintf("%02d:%02d:%02d,%03d", h, m, s, ms)
+}
+
+// formatTimeVTT formats seconds as VTT timestamp (HH:MM:SS.mmm)
+func formatTimeVTT(seconds float64) string {
+	h := int(seconds) / 3600
+	m := (int(seconds) % 3600) / 60
+	s := int(seconds) % 60
+	ms := int((seconds - float64(int(seconds))) * 1000)
+	return fmt.Sprintf("%02d:%02d:%02d.%03d", h, m, s, ms)
+}
+
+// generateSRT generates SRT subtitle content from segments
+func generateSRT(segments []oai.TranscriptionSegment) string {
+	var sb strings.Builder
+	for i, seg := range segments {
+		sb.WriteString(fmt.Sprintf("%d\n", i+1))
+		sb.WriteString(fmt.Sprintf("%s --> %s\n", formatTimeSRT(seg.Start), formatTimeSRT(seg.End)))
+		sb.WriteString(strings.TrimSpace(seg.Text))
+		sb.WriteString("\n\n")
+	}
+	return sb.String()
+}
+
+// generateVTT generates WebVTT subtitle content from segments
+func generateVTT(segments []oai.TranscriptionSegment) string {
+	var sb strings.Builder
+	sb.WriteString("WEBVTT\n\n")
+	for _, seg := range segments {
+		sb.WriteString(fmt.Sprintf("%s --> %s\n", formatTimeVTT(seg.Start), formatTimeVTT(seg.End)))
+		sb.WriteString(strings.TrimSpace(seg.Text))
+		sb.WriteString("\n\n")
+	}
+	return sb.String()
 }
 
 func getAudioInput(args []string, filePath string, stdin io.Reader) (file string, reader io.Reader, cleanup func(), err error) {

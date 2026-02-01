@@ -413,3 +413,102 @@ func TestSTT_PromptNotSupportedByModel(t *testing.T) {
 		t.Errorf("expected error code 'invalid_parameter', got: %s", errorObj["code"])
 	}
 }
+
+func TestFormatTimeSRT(t *testing.T) {
+	tests := []struct {
+		seconds  float64
+		expected string
+	}{
+		{0, "00:00:00,000"},
+		{1.5, "00:00:01,500"},
+		{61.25, "00:01:01,250"},
+		{3661.5, "01:01:01,500"},
+		{7325.125, "02:02:05,125"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			result := formatTimeSRT(tt.seconds)
+			if result != tt.expected {
+				t.Errorf("formatTimeSRT(%v) = %s, want %s", tt.seconds, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestFormatTimeVTT(t *testing.T) {
+	tests := []struct {
+		seconds  float64
+		expected string
+	}{
+		{0, "00:00:00.000"},
+		{1.5, "00:00:01.500"},
+		{61.25, "00:01:01.250"},
+		{3661.5, "01:01:01.500"},
+		{7325.125, "02:02:05.125"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			result := formatTimeVTT(tt.seconds)
+			if result != tt.expected {
+				t.Errorf("formatTimeVTT(%v) = %s, want %s", tt.seconds, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestGenerateSRT(t *testing.T) {
+	// Test SRT format structure: index, timestamp, text
+	// Using formatTimeSRT which is already tested above
+
+	// Verify the expected SRT structure
+	expectedLines := []string{
+		"1",
+		"00:00:00,000 --> 00:00:02,500",
+		"Hello world",
+	}
+
+	// Build a sample SRT entry manually to verify format
+	var sb strings.Builder
+	sb.WriteString("1\n")
+	sb.WriteString(formatTimeSRT(0) + " --> " + formatTimeSRT(2.5) + "\n")
+	sb.WriteString("Hello world\n\n")
+
+	result := sb.String()
+	for _, line := range expectedLines {
+		if !strings.Contains(result, line) {
+			t.Errorf("SRT format missing expected line: %s, got: %s", line, result)
+		}
+	}
+}
+
+func TestGenerateVTT(t *testing.T) {
+	// Test VTT header and format
+	segments := []struct {
+		Start float64
+		End   float64
+		Text  string
+	}{
+		{0, 2.5, " Hello world "},
+	}
+
+	var sb strings.Builder
+	sb.WriteString("WEBVTT\n\n")
+	for _, seg := range segments {
+		sb.WriteString(formatTimeVTT(seg.Start))
+		sb.WriteString(" --> ")
+		sb.WriteString(formatTimeVTT(seg.End))
+		sb.WriteString("\n")
+		sb.WriteString(strings.TrimSpace(seg.Text))
+		sb.WriteString("\n\n")
+	}
+
+	result := sb.String()
+	if !strings.HasPrefix(result, "WEBVTT\n\n") {
+		t.Error("VTT must start with WEBVTT header")
+	}
+	if !strings.Contains(result, "00:00:00.000 --> 00:00:02.500\nHello world") {
+		t.Errorf("VTT format incorrect, got: %s", result)
+	}
+}

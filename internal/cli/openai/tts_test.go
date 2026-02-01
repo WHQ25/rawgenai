@@ -191,6 +191,8 @@ func TestTTS_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	t.Setenv("OPENAI_API_KEY", "")
+
 	cmd := newTTSCmd()
 	_, stderr, err := executeCommand(cmd, "--file", tmpFile.Name(), "-o", "out.mp3")
 
@@ -230,6 +232,8 @@ func TestTTS_FromFileNotFound(t *testing.T) {
 }
 
 func TestTTS_FromStdin(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "")
+
 	cmd := newTTSCmd()
 	cmd.SetIn(strings.NewReader("Hello from stdin"))
 
