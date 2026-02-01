@@ -2,23 +2,54 @@
 
 Text to Speech using Google Gemini TTS models.
 
+> **Note:** Unlike other TTS providers (OpenAI, ElevenLabs), Gemini TTS accepts a **prompt** that can include style instructions to control voice characteristics like tone, pace, and emotion.
+
+> **Important:** For complex sentences, use explicit style prefixes like `Say:` or `Read:` to ensure proper TTS behavior. Without these, the model may misinterpret certain phrases as instructions rather than text to speak.
+
 ## Usage
 
 ```bash
-rawgenai google tts <text> [flags]
-rawgenai google tts --file <input.txt> [flags]
+rawgenai google tts <prompt> [flags]
+rawgenai google tts --prompt-file <input.txt> [flags]
 cat input.txt | rawgenai google tts [flags]
 ```
 
 ## Examples
 
+### Basic Usage
+
 ```bash
-# Basic
+# Simple text (plain text works too)
 rawgenai google tts "Hello, world!" -o hello.wav
 
 # With voice selection
 rawgenai google tts "Welcome to the show" --voice Kore -o welcome.wav
+```
 
+### Prompt-based Style Control
+
+Gemini TTS supports natural language prompts to control speech style:
+
+```bash
+# Cheerful tone
+rawgenai google tts "Say cheerfully: Hello everyone, welcome to the show!" -o cheerful.wav
+
+# Whispering
+rawgenai google tts "Whisper: This is a secret message" -o whisper.wav
+
+# Slow and dramatic
+rawgenai google tts "Say slowly and dramatically: The end is near..." -o dramatic.wav
+
+# News anchor style
+rawgenai google tts "Read like a news anchor: Breaking news today..." -o news.wav
+
+# Excited
+rawgenai google tts "Say excitedly: We won the championship!" -o excited.wav
+```
+
+### Advanced Examples
+
+```bash
 # Using Pro model for higher quality
 rawgenai google tts "Important announcement" --model pro --voice Puck -o announcement.wav
 
@@ -26,10 +57,13 @@ rawgenai google tts "Important announcement" --model pro --voice Puck -o announc
 rawgenai google tts "Joe: Hi there!\nJane: Hello!" --speakers "Joe=Kore,Jane=Puck" -o conversation.wav
 
 # From file
-rawgenai google tts --file script.txt -o output.wav
+rawgenai google tts --prompt-file script.txt -o output.wav
 
 # From stdin
-echo "Hello" | rawgenai google tts -o hello.wav
+echo "Say calmly: Hello" | rawgenai google tts -o hello.wav
+
+# Play directly without saving
+rawgenai google tts "Hello world" --speak
 
 # Convert to MP3 (requires ffmpeg)
 rawgenai google tts "Hello" -o hello.wav && ffmpeg -i hello.wav hello.mp3
@@ -39,11 +73,14 @@ rawgenai google tts "Hello" -o hello.wav && ffmpeg -i hello.wav hello.mp3
 
 | Flag | Short | Type | Default | Required | Description |
 |------|-------|------|---------|----------|-------------|
-| `--output` | `-o` | string | - | Yes | Output file path (.wav) |
-| `--file` | - | string | - | No | Input text file |
+| `--output` | `-o` | string | - | No* | Output file path (.wav) |
+| `--prompt-file` | - | string | - | No | Input prompt file |
 | `--voice` | `-v` | string | `Kore` | No | Voice name (single speaker) |
 | `--speakers` | - | string | - | No | Multi-speaker config: "Name1=Voice1,Name2=Voice2" |
 | `--model` | `-m` | string | `flash` | No | Model: flash, pro |
+| `--speak` | - | bool | `false` | No | Play audio after generation |
+
+*Required unless `--speak` is used.
 
 ## Models
 
@@ -134,6 +171,32 @@ Multi-speaker output:
 }
 ```
 
+## Troubleshooting
+
+### "Model tried to generate text" Error
+
+If you see this error:
+```json
+{"success":false,"error":{"code":"api_error","message":"Model tried to generate text..."}}
+```
+
+The Gemini TTS model misinterpreted your text as an instruction. Fix by adding an explicit style prefix:
+
+```bash
+# ❌ May fail
+rawgenai google tts "This is a test of the speak feature." -o test.wav
+
+# ✅ Works
+rawgenai google tts "Say: This is a test of the speak feature." -o test.wav
+rawgenai google tts "Read aloud: This is a test of the speak feature." -o test.wav
+```
+
+Common prefixes that work:
+- `Say:` - neutral reading
+- `Read aloud:` - clear narration
+- `Speak:` - natural speech
+- `Announce:` - formal tone
+
 ## Errors
 
 ```json
@@ -153,7 +216,7 @@ Multi-speaker output:
 | `missing_api_key` | GEMINI_API_KEY not set |
 | `missing_text` | No text provided (no argument, empty file, empty stdin) |
 | `missing_output` | --output flag not provided |
-| `file_not_found` | Input file specified by --file does not exist |
+| `file_not_found` | Input file specified by --prompt-file does not exist |
 | `unsupported_format` | Output file extension not .wav |
 | `invalid_voice` | Voice name not in prebuilt voices list |
 | `invalid_model` | Model not flash or pro |

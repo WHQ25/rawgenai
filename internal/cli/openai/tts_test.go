@@ -161,6 +161,32 @@ func TestTTS_ValidFlags(t *testing.T) {
 	if cmd.Flag("speed") == nil {
 		t.Error("expected --speed flag")
 	}
+	if cmd.Flag("speak") == nil {
+		t.Error("expected --speak flag")
+	}
+}
+
+func TestTTS_SpeakWithoutOutput(t *testing.T) {
+	// --speak without -o should not trigger missing_output error
+	t.Setenv("OPENAI_API_KEY", "")
+
+	cmd := newTTSCmd()
+	_, stderr, err := executeCommand(cmd, "Hello", "--speak")
+
+	if err == nil {
+		t.Fatal("expected error (missing api key), got success")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	// Should reach API key check, not missing_output
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
 }
 
 func TestTTS_DefaultValues(t *testing.T) {

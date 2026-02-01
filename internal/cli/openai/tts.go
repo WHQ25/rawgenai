@@ -30,6 +30,7 @@ type ttsFlags struct {
 	model        string
 	instructions string
 	speed        float64
+	speak        bool
 }
 
 type ttsResponse struct {
@@ -61,6 +62,7 @@ func newTTSCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&flags.model, "model", "m", "gpt-4o-mini-tts", "Model name")
 	cmd.Flags().StringVar(&flags.instructions, "instructions", "", "Voice style instructions (gpt-4o-mini-tts only)")
 	cmd.Flags().Float64Var(&flags.speed, "speed", 1, "Speed (0.25 - 4.0)")
+	cmd.Flags().BoolVar(&flags.speak, "speak", false, "Play audio after generation")
 
 	return cmd
 }
@@ -72,13 +74,32 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 		return common.WriteError(cmd, "missing_text", err.Error())
 	}
 
-	// Validate output
-	if flags.output == "" {
-		return common.WriteError(cmd, "missing_output", "output file is required, use -o flag")
+	// Validate output or speak
+	if flags.output == "" && !flags.speak {
+		return common.WriteError(cmd, "missing_output", "output file is required, use -o flag or --speak")
+	}
+
+	// Determine output path and format
+	var outputPath string
+	var useTempFile bool
+	var ext string
+
+	if flags.output != "" {
+		outputPath = flags.output
+		ext = strings.ToLower(filepath.Ext(outputPath))
+	} else {
+		// --speak only: use temp file with mp3 format
+		ext = ".mp3"
+		tmpFile, err := os.CreateTemp("", "tts-*.mp3")
+		if err != nil {
+			return common.WriteError(cmd, "internal_error", fmt.Sprintf("cannot create temp file: %s", err.Error()))
+		}
+		outputPath = tmpFile.Name()
+		tmpFile.Close()
+		useTempFile = true
 	}
 
 	// Validate format
-	ext := strings.ToLower(filepath.Ext(flags.output))
 	responseFormat, ok := supportedFormats[ext]
 	if !ok {
 		return common.WriteError(cmd, "unsupported_format", fmt.Sprintf("unsupported format '%s', supported: mp3, opus, aac, flac, wav, pcm", ext))
@@ -119,26 +140,49 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 
 	resp, err := client.Audio.Speech.New(ctx, params)
 	if err != nil {
+		if useTempFile {
+			os.Remove(outputPath)
+		}
 		return handleAPIError(cmd, err)
 	}
 	defer resp.Body.Close()
 
 	// Get absolute path for output
-	absPath, err := filepath.Abs(flags.output)
+	absPath, err := filepath.Abs(outputPath)
 	if err != nil {
-		absPath = flags.output
+		absPath = outputPath
 	}
 
 	// Write to file
 	outFile, err := os.Create(absPath)
 	if err != nil {
+		if useTempFile {
+			os.Remove(outputPath)
+		}
 		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot create output file: %s", err.Error()))
 	}
 	defer outFile.Close()
 
 	_, err = io.Copy(outFile, resp.Body)
 	if err != nil {
+		if useTempFile {
+			os.Remove(outputPath)
+		}
 		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
+	}
+
+	// Play audio if --speak is set
+	if flags.speak {
+		outFile.Close() // Close before playing
+		if err := common.PlayFile(absPath); err != nil {
+			if useTempFile {
+				os.Remove(absPath)
+			}
+			return common.WriteError(cmd, "playback_error", fmt.Sprintf("cannot play audio: %s", err.Error()))
+		}
+		if useTempFile {
+			os.Remove(absPath)
+		}
 	}
 
 	// Return success
@@ -147,6 +191,9 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 		File:    absPath,
 		Model:   flags.model,
 		Voice:   flags.voice,
+	}
+	if useTempFile {
+		result.File = "" // Don't report temp file path
 	}
 	return common.WriteSuccess(cmd, result)
 }

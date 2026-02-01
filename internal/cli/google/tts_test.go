@@ -3,6 +3,7 @@ package google
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"strings"
 	"testing"
 
@@ -343,6 +344,84 @@ func TestTTS_FlagDefaults(t *testing.T) {
 	if model != "flash" {
 		t.Errorf("expected default model 'flash', got '%s'", model)
 	}
+
+	// Check speak flag exists
+	if cmd.Flag("speak") == nil {
+		t.Error("expected --speak flag")
+	}
+
+	// Check prompt-file flag exists (not --file)
+	if cmd.Flag("prompt-file") == nil {
+		t.Error("expected --prompt-file flag")
+	}
+}
+
+func TestTTS_SpeakWithoutOutput(t *testing.T) {
+	// --speak without -o should not trigger missing_output error
+	t.Setenv("GEMINI_API_KEY", "")
+	t.Setenv("GOOGLE_API_KEY", "")
+
+	cmd := newTTSCmd()
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	cmd.SetOut(out)
+	cmd.SetErr(errOut)
+	cmd.SetArgs([]string{"Hello", "--speak"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error (missing api key), got success")
+	}
+
+	var resp common.ErrorResponse
+	if err := json.Unmarshal(errOut.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to parse error response: %v", err)
+	}
+
+	// Should reach API key check, not missing_output
+	if resp.Error.Code != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got '%s'", resp.Error.Code)
+	}
+}
+
+func TestTTS_PromptFile(t *testing.T) {
+	t.Setenv("GEMINI_API_KEY", "")
+	t.Setenv("GOOGLE_API_KEY", "")
+
+	// Create temp file
+	tmpFile, err := os.CreateTemp("", "tts_test_*.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	_, err = tmpFile.WriteString("Say: Hello from file")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpFile.Close()
+
+	cmd := newTTSCmd()
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	cmd.SetOut(out)
+	cmd.SetErr(errOut)
+	cmd.SetArgs([]string{"--prompt-file", tmpFile.Name(), "-o", "output.wav"})
+
+	cmdErr := cmd.Execute()
+	if cmdErr == nil {
+		t.Fatal("expected error (missing api key), got success")
+	}
+
+	var resp common.ErrorResponse
+	if err := json.Unmarshal(errOut.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to parse error response: %v", err)
+	}
+
+	// Should reach API key check (file was read successfully)
+	if resp.Error.Code != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got '%s'", resp.Error.Code)
+	}
 }
 
 func TestTTS_FileNotFound(t *testing.T) {
@@ -351,7 +430,7 @@ func TestTTS_FileNotFound(t *testing.T) {
 	errOut := &bytes.Buffer{}
 	cmd.SetOut(out)
 	cmd.SetErr(errOut)
-	cmd.SetArgs([]string{"--file", "nonexistent.txt", "-o", "output.wav"})
+	cmd.SetArgs([]string{"--prompt-file", "nonexistent.txt", "-o", "output.wav"})
 
 	err := cmd.Execute()
 	if err == nil {
