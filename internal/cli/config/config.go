@@ -148,7 +148,7 @@ var listCmd = &cobra.Command{
 
 		keys := cfg.List()
 
-		// Sort keys for consistent output
+		// Sort keys and filter out "(not set)" values
 		sortedKeys := make([]string, 0, len(keys))
 		for k := range keys {
 			sortedKeys = append(sortedKeys, k)
@@ -157,7 +157,9 @@ var listCmd = &cobra.Command{
 
 		sortedMap := make(map[string]string)
 		for _, k := range sortedKeys {
-			sortedMap[k] = keys[k]
+			if keys[k] != "(not set)" {
+				sortedMap[k] = keys[k]
+			}
 		}
 
 		resp := listResponse{Success: true, Keys: sortedMap}
