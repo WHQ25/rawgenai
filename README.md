@@ -55,20 +55,21 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 | **STT** | Speech to Text - Transcribe audio to text |
 | **Image** | Generate images from text prompts |
 | **Video** | Generate videos from text/image prompts |
+| **Music** | Generate music from lyrics |
 
 ## Supported Providers
 
-| Provider | TTS | STT | Image | Video |
-|----------|:---:|:---:|:-----:|:-----:|
-| OpenAI | ✅ | ✅ | ✅ | ✅ |
-| Google | ✅ | ✅ | ✅ | ✅ |
-| ElevenLabs | ✅ | ✅ | - | - |
-| Grok | - | - | ✅ | ✅ |
-| Seed | ✅ | - | ✅ | ✅ |
-| Kling | - | - | - | ✅ |
-| Runway | - | - | ✅ | ✅ |
-| Luma | - | - | ✅ | ✅ |
-| MiniMax | ✅ | - | ✅ | ✅ |
+| Provider | TTS | STT | Image | Video | Music |
+|----------|:---:|:---:|:-----:|:-----:|:-----:|
+| OpenAI | ✅ | ✅ | ✅ | ✅ | - |
+| Google | ✅ | ✅ | ✅ | ✅ | - |
+| ElevenLabs | ✅ | ✅ | - | - | - |
+| Grok | - | - | ✅ | ✅ | - |
+| Seed | ✅ | - | ✅ | ✅ | - |
+| Kling | - | - | - | ✅ | - |
+| Runway | - | - | ✅ | ✅ | - |
+| Luma | - | - | ✅ | ✅ | - |
+| MiniMax | ✅ | - | ✅ | ✅ | ✅ |
 
 ## CLI Structure
 
@@ -78,7 +79,7 @@ rawgenai <provider> <action> [options]
 
 Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`, `kling`, `runway`, `luma`, `minimax`
 
-Actions: `tts`, `stt`, `image`, `video` (varies by provider)
+Actions: `tts`, `stt`, `image`, `video`, `music` (varies by provider)
 
 ## Output Format
 
