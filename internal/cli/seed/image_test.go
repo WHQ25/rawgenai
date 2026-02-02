@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/spf13/cobra"
 )
 
@@ -213,6 +214,7 @@ func TestSeedImage_TooManyImages(t *testing.T) {
 }
 
 func TestSeedImage_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newSeedImageCmd()
@@ -285,6 +287,7 @@ func TestSeedImage_ShortFlags(t *testing.T) {
 }
 
 func TestSeedImage_ValidSizes(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	sizes := []string{"2K", "4K"}
@@ -311,6 +314,7 @@ func TestSeedImage_ValidSizes(t *testing.T) {
 }
 
 func TestSeedImage_ValidWxHSizes(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	sizes := []string{"2048x2048", "1024x1024", "3072x2048", "1920x1080"}
@@ -365,6 +369,7 @@ func TestSeedImage_InvalidWxHSizes(t *testing.T) {
 }
 
 func TestSeedImage_ValidModels(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	models := []string{"4.5", "4.0"}
@@ -403,6 +408,7 @@ func TestSeedImage_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newSeedImageCmd()
@@ -424,6 +430,7 @@ func TestSeedImage_FromFile(t *testing.T) {
 }
 
 func TestSeedImage_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newSeedImageCmd()
@@ -447,6 +454,7 @@ func TestSeedImage_FromStdin(t *testing.T) {
 }
 
 func TestSeedImage_WithReferenceImage(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	tmpFile, err := os.CreateTemp("", "image_*.png")
@@ -580,6 +588,7 @@ func TestSeedImage_EmptyStdin(t *testing.T) {
 }
 
 func TestSeedImage_MaxImagesAllowed(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	// Create 14 temp files (max is 14, should pass)
@@ -623,6 +632,7 @@ func TestSeedImage_MaxImagesAllowed(t *testing.T) {
 }
 
 func TestSeedImage_OutputUppercaseJPG(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newSeedImageCmd()
@@ -645,6 +655,7 @@ func TestSeedImage_OutputUppercaseJPG(t *testing.T) {
 }
 
 func TestSeedImage_OutputJPEG(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newSeedImageCmd()
@@ -667,6 +678,7 @@ func TestSeedImage_OutputJPEG(t *testing.T) {
 }
 
 func TestSeedImage_ValidCounts(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	counts := []string{"1", "5", "10"}
@@ -693,6 +705,7 @@ func TestSeedImage_ValidCounts(t *testing.T) {
 }
 
 func TestSeedImage_WithWatermark(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newSeedImageCmd()

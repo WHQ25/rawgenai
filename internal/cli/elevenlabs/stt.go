@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -162,9 +163,9 @@ func runSTT(cmd *cobra.Command, args []string, flags *sttFlags) error {
 	}
 
 	// Check API key
-	apiKey := os.Getenv("ELEVENLABS_API_KEY")
+	apiKey := config.GetAPIKey("ELEVENLABS_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "ELEVENLABS_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("ELEVENLABS_API_KEY"))
 	}
 
 	// Build multipart form request

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/spf13/cobra"
 )
 
@@ -279,6 +280,7 @@ func TestImage_TooManyImagesPro(t *testing.T) {
 }
 
 func TestImage_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -352,6 +354,7 @@ func TestImage_ShortFlags(t *testing.T) {
 }
 
 func TestImage_ValidAspectRatios(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 
 	aspects := []string{"1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"}
@@ -379,6 +382,7 @@ func TestImage_ValidAspectRatios(t *testing.T) {
 }
 
 func TestImage_ValidSizes(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 
 	sizes := []string{"1K", "2K", "4K"}
@@ -436,6 +440,7 @@ func TestImage_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 
 	cmd := newImageCmd()
@@ -457,6 +462,7 @@ func TestImage_FromFile(t *testing.T) {
 }
 
 func TestImage_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 
 	cmd := newImageCmd()
@@ -480,6 +486,7 @@ func TestImage_FromStdin(t *testing.T) {
 }
 
 func TestImage_WithReferenceImage(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 
 	tmpFile, err := os.CreateTemp("", "image_*.png")
@@ -508,6 +515,7 @@ func TestImage_WithReferenceImage(t *testing.T) {
 }
 
 func TestImage_ProModelWithSearch(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 
 	cmd := newImageCmd()
@@ -634,6 +642,7 @@ func TestImage_EmptyStdin(t *testing.T) {
 }
 
 func TestImage_MaxImagesFlashAllowed(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -678,6 +687,7 @@ func TestImage_MaxImagesFlashAllowed(t *testing.T) {
 }
 
 func TestImage_OutputUppercasePNG(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -701,6 +711,7 @@ func TestImage_OutputUppercasePNG(t *testing.T) {
 }
 
 func TestImage_GoogleAPIKeyFallback(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "test-google-key")
 

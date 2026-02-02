@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/spf13/cobra"
 )
 
@@ -118,7 +119,8 @@ func TestTTS_UnsupportedFormat(t *testing.T) {
 }
 
 func TestTTS_MissingAPIKey(t *testing.T) {
-	// Temporarily unset API key
+	// Ensure no API key in env or config
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newTTSCmd()
@@ -168,6 +170,7 @@ func TestTTS_ValidFlags(t *testing.T) {
 
 func TestTTS_SpeakWithoutOutput(t *testing.T) {
 	// --speak without -o should not trigger missing_output error
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newTTSCmd()
@@ -217,6 +220,7 @@ func TestTTS_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newTTSCmd()
@@ -258,6 +262,7 @@ func TestTTS_FromFileNotFound(t *testing.T) {
 }
 
 func TestTTS_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newTTSCmd()

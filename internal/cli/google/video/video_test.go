@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/spf13/cobra"
 )
 
@@ -141,6 +142,7 @@ func TestCreate_InvalidDuration(t *testing.T) {
 }
 
 func TestCreate_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -203,6 +205,7 @@ func TestCreate_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -244,6 +247,7 @@ func TestCreate_FromFileNotFound(t *testing.T) {
 }
 
 func TestCreate_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -317,6 +321,7 @@ func TestCreate_InvalidImageFormat(t *testing.T) {
 }
 
 func TestCreate_ValidAspects(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -345,6 +350,7 @@ func TestCreate_ValidAspects(t *testing.T) {
 }
 
 func TestCreate_ValidResolutions(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -427,6 +433,7 @@ func TestCreate_ResolutionDurationMismatch(t *testing.T) {
 }
 
 func TestCreate_ValidDurations(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -455,6 +462,7 @@ func TestCreate_ValidDurations(t *testing.T) {
 }
 
 func TestCreate_WithNegativePrompt(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -477,6 +485,7 @@ func TestCreate_WithNegativePrompt(t *testing.T) {
 }
 
 func TestCreate_WithSeed(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -510,6 +519,7 @@ func TestStatus_MissingOperationID(t *testing.T) {
 }
 
 func TestStatus_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -581,6 +591,7 @@ func TestDownload_InvalidFormat(t *testing.T) {
 }
 
 func TestDownload_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -696,6 +707,7 @@ func TestCreate_EmptyStdin(t *testing.T) {
 }
 
 func TestCreate_Veo31FastModel(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -718,6 +730,7 @@ func TestCreate_Veo31FastModel(t *testing.T) {
 }
 
 func TestCreate_ValidFirstFrame(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -752,6 +765,7 @@ func TestCreate_ValidFirstFrame(t *testing.T) {
 }
 
 func TestCreate_GoogleAPIKeyFallback(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "test-google-key")
 
@@ -774,6 +788,7 @@ func TestCreate_GoogleAPIKeyFallback(t *testing.T) {
 }
 
 func TestStatus_GoogleAPIKeyFallback(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "test-google-key")
 
@@ -796,6 +811,7 @@ func TestStatus_GoogleAPIKeyFallback(t *testing.T) {
 }
 
 func TestDownload_GoogleAPIKeyFallback(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "test-google-key")
 
@@ -860,6 +876,7 @@ func TestDownload_EmptyOperationID(t *testing.T) {
 }
 
 func TestDownload_UppercaseMP4(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -1237,6 +1254,7 @@ func TestExtend_MissingPrompt(t *testing.T) {
 }
 
 func TestExtend_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -1347,6 +1365,7 @@ func TestCreate_LastFrameNotFound(t *testing.T) {
 }
 
 func TestCreate_ValidFirstAndLastFrame(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -1479,6 +1498,7 @@ func TestCreate_ConflictingImageOptions_RefWithFirstFrame(t *testing.T) {
 }
 
 func TestCreate_ValidRef(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -1508,6 +1528,7 @@ func TestCreate_ValidRef(t *testing.T) {
 }
 
 func TestCreate_ValidMultipleRefs(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 

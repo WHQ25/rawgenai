@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/spf13/cobra"
@@ -131,10 +132,13 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 	}
 
 	// Get credentials
-	appID := os.Getenv("SEED_APP_ID")
-	accessToken := os.Getenv("SEED_ACCESS_TOKEN")
-	if appID == "" || accessToken == "" {
-		return common.WriteError(cmd, "missing_credentials", "SEED_APP_ID and SEED_ACCESS_TOKEN environment variables are required")
+	appID := config.GetAPIKey("SEED_APP_ID")
+	if appID == "" {
+		return common.WriteError(cmd, "missing_credentials", config.GetMissingKeyMessage("SEED_APP_ID"))
+	}
+	accessToken := config.GetAPIKey("SEED_ACCESS_TOKEN")
+	if accessToken == "" {
+		return common.WriteError(cmd, "missing_credentials", config.GetMissingKeyMessage("SEED_ACCESS_TOKEN"))
 	}
 
 	// Determine output path

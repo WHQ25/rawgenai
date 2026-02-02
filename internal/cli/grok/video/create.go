@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -123,9 +124,9 @@ func runCreate(cmd *cobra.Command, args []string, flags *createFlags) error {
 	}
 
 	// Check API key
-	apiKey := os.Getenv("XAI_API_KEY")
+	apiKey := config.GetAPIKey("XAI_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "XAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("XAI_API_KEY"))
 	}
 
 	// Check if image-to-video mode

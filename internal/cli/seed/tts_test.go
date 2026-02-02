@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/spf13/cobra"
 )
 
@@ -148,6 +149,7 @@ func TestTTS_InvalidVolume(t *testing.T) {
 }
 
 func TestTTS_MissingCredentials(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("SEED_APP_ID", "")
 	t.Setenv("SEED_ACCESS_TOKEN", "")
 
@@ -201,6 +203,7 @@ func TestTTS_DefaultValues(t *testing.T) {
 }
 
 func TestTTS_SpeakWithoutOutput(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("SEED_APP_ID", "")
 	t.Setenv("SEED_ACCESS_TOKEN", "")
 
@@ -255,6 +258,7 @@ func TestTTS_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("SEED_APP_ID", "")
 	t.Setenv("SEED_ACCESS_TOKEN", "")
 
@@ -297,6 +301,7 @@ func TestTTS_FromFileNotFound(t *testing.T) {
 }
 
 func TestTTS_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("SEED_APP_ID", "")
 	t.Setenv("SEED_ACCESS_TOKEN", "")
 

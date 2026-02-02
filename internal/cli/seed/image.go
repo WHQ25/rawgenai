@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -128,9 +129,9 @@ func runSeedImage(cmd *cobra.Command, args []string, flags *seedImageFlags) erro
 	}
 
 	// Check API key
-	apiKey := os.Getenv("ARK_API_KEY")
+	apiKey := config.GetAPIKey("ARK_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "ARK_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("ARK_API_KEY"))
 	}
 
 	// Prepare image data

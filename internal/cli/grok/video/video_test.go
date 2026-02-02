@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/spf13/cobra"
 )
 
@@ -141,6 +142,7 @@ func TestCreate_ImageNotFound(t *testing.T) {
 }
 
 func TestCreate_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	cmd := newCreateCmd()
@@ -209,6 +211,7 @@ func TestCreate_ShortFlags(t *testing.T) {
 }
 
 func TestCreate_ValidDurationRange(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	for _, d := range []string{"1", "5", "10", "15"} {
@@ -234,6 +237,7 @@ func TestCreate_ValidDurationRange(t *testing.T) {
 }
 
 func TestCreate_ValidAspectRatios(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	aspects := []string{"16:9", "9:16"}
@@ -260,6 +264,7 @@ func TestCreate_ValidAspectRatios(t *testing.T) {
 }
 
 func TestCreate_ValidResolutions(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	resolutions := []string{"720p", "480p"}
@@ -298,6 +303,7 @@ func TestCreate_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	cmd := newCreateCmd()
@@ -319,6 +325,7 @@ func TestCreate_FromFile(t *testing.T) {
 }
 
 func TestCreate_WithImage(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	tmpFile, err := os.CreateTemp("", "image_*.png")
@@ -415,6 +422,7 @@ func TestEdit_MissingVideo(t *testing.T) {
 }
 
 func TestEdit_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	cmd := newEditCmd()
@@ -483,6 +491,7 @@ func TestStatus_MissingRequestID(t *testing.T) {
 }
 
 func TestStatus_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	cmd := newStatusCmd()
@@ -566,6 +575,7 @@ func TestDownload_InvalidFormat(t *testing.T) {
 }
 
 func TestDownload_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("XAI_API_KEY", "")
 
 	cmd := newDownloadCmd()

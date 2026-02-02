@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 )
 
 func TestSTT_MissingInput(t *testing.T) {
@@ -190,6 +192,7 @@ func TestSTT_SpeakersOutOfRange(t *testing.T) {
 }
 
 func TestSTT_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ELEVENLABS_API_KEY", "")
 
 	tmpFile, err := os.CreateTemp("", "stt_test_*.mp3")
@@ -259,6 +262,7 @@ func TestSTT_DefaultValues(t *testing.T) {
 }
 
 func TestSTT_FromFileFlag(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ELEVENLABS_API_KEY", "")
 
 	tmpFile, err := os.CreateTemp("", "stt_test_*.mp3")
@@ -288,6 +292,7 @@ func TestSTT_FromFileFlag(t *testing.T) {
 }
 
 func TestSTT_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ELEVENLABS_API_KEY", "")
 
 	cmd := newSTTCmd()

@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 )
 
 func TestImage_MissingPrompt(t *testing.T) {
@@ -249,6 +251,7 @@ func TestImage_TooManyImages(t *testing.T) {
 }
 
 func TestImage_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newImageCmd()
@@ -281,6 +284,7 @@ func TestImage_ValidFlags(t *testing.T) {
 }
 
 func TestImage_ContinueWithResponseID(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newImageCmd()
@@ -341,6 +345,7 @@ func TestImage_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newImageCmd()
@@ -363,6 +368,7 @@ func TestImage_FromFile(t *testing.T) {
 }
 
 func TestImage_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newImageCmd()
@@ -386,6 +392,7 @@ func TestImage_FromStdin(t *testing.T) {
 }
 
 func TestImage_WithReferenceImage(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	tmpFile, err := os.CreateTemp("", "image_*.png")
@@ -415,6 +422,7 @@ func TestImage_WithReferenceImage(t *testing.T) {
 }
 
 func TestImage_MultipleReferenceImages(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	var tmpFiles []*os.File
@@ -451,6 +459,7 @@ func TestImage_MultipleReferenceImages(t *testing.T) {
 }
 
 func TestImage_SupportedFormats(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	formats := []string{".png", ".jpeg", ".jpg", ".webp"}
@@ -549,6 +558,7 @@ func TestImage_EmptyPromptFile(t *testing.T) {
 }
 
 func TestImage_TransparentWithWebp(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newImageCmd()
@@ -571,6 +581,7 @@ func TestImage_TransparentWithWebp(t *testing.T) {
 }
 
 func TestImage_CompressionBoundary(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	tests := []struct {
@@ -604,6 +615,7 @@ func TestImage_CompressionBoundary(t *testing.T) {
 }
 
 func TestImage_ValidFidelityValues(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	values := []string{"high", "low"}
@@ -630,6 +642,7 @@ func TestImage_ValidFidelityValues(t *testing.T) {
 }
 
 func TestImage_MaskWithImage(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	imgFile, err := os.CreateTemp("", "image_*.png")

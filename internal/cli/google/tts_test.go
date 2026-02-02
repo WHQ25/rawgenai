@@ -209,6 +209,7 @@ func TestTTS_InvalidSpeakerFormat(t *testing.T) {
 }
 
 func TestTTS_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -358,6 +359,7 @@ func TestTTS_FlagDefaults(t *testing.T) {
 
 func TestTTS_SpeakWithoutOutput(t *testing.T) {
 	// --speak without -o should not trigger missing_output error
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 
@@ -385,6 +387,7 @@ func TestTTS_SpeakWithoutOutput(t *testing.T) {
 }
 
 func TestTTS_PromptFile(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "")
 

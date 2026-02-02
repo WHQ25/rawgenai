@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
@@ -83,9 +84,9 @@ func runDownload(cmd *cobra.Command, args []string, flags *downloadFlags) error 
 	}
 
 	// Check API key
-	apiKey := os.Getenv("OPENAI_API_KEY")
+	apiKey := config.GetAPIKey("OPENAI_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("OPENAI_API_KEY"))
 	}
 
 	client := oai.NewClient()

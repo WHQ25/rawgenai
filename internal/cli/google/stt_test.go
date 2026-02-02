@@ -91,7 +91,8 @@ func TestSTT_MissingAPIKey(t *testing.T) {
 		t.Fatalf("failed to create temp file: %v", err)
 	}
 
-	// Ensure API key is not set
+	// Ensure API key is not set (env and config)
+	common.SetupNoConfigEnv(t)
 	oldGemini := os.Getenv("GEMINI_API_KEY")
 	oldGoogle := os.Getenv("GOOGLE_API_KEY")
 	os.Unsetenv("GEMINI_API_KEY")
@@ -134,7 +135,8 @@ func TestSTT_FileFlag(t *testing.T) {
 		t.Fatalf("failed to create temp file: %v", err)
 	}
 
-	// Ensure API key is not set
+	// Ensure API key is not set (env and config)
+	common.SetupNoConfigEnv(t)
 	oldGemini := os.Getenv("GEMINI_API_KEY")
 	oldGoogle := os.Getenv("GOOGLE_API_KEY")
 	os.Unsetenv("GEMINI_API_KEY")

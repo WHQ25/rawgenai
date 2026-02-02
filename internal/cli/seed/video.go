@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -155,9 +156,9 @@ func runVideoCreate(cmd *cobra.Command, args []string, flags *videoCreateFlags) 
 	}
 
 	// Check API key
-	apiKey := os.Getenv("ARK_API_KEY")
+	apiKey := config.GetAPIKey("ARK_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "ARK_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("ARK_API_KEY"))
 	}
 
 	// Build content array
@@ -297,9 +298,9 @@ func runVideoStatus(cmd *cobra.Command, args []string) error {
 	taskID := args[0]
 
 	// Check API key
-	apiKey := os.Getenv("ARK_API_KEY")
+	apiKey := config.GetAPIKey("ARK_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "ARK_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("ARK_API_KEY"))
 	}
 
 	// Create HTTP request
@@ -425,9 +426,9 @@ func runVideoDownload(cmd *cobra.Command, args []string, flags *videoDownloadFla
 	}
 
 	// Check API key
-	apiKey := os.Getenv("ARK_API_KEY")
+	apiKey := config.GetAPIKey("ARK_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "ARK_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("ARK_API_KEY"))
 	}
 
 	// Get task status first
@@ -576,9 +577,9 @@ func runVideoList(cmd *cobra.Command, flags *videoListFlags) error {
 	}
 
 	// Check API key
-	apiKey := os.Getenv("ARK_API_KEY")
+	apiKey := config.GetAPIKey("ARK_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "ARK_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("ARK_API_KEY"))
 	}
 
 	// Build URL with query params
@@ -674,9 +675,9 @@ func runVideoDelete(cmd *cobra.Command, args []string) error {
 	taskID := args[0]
 
 	// Check API key
-	apiKey := os.Getenv("ARK_API_KEY")
+	apiKey := config.GetAPIKey("ARK_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "ARK_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("ARK_API_KEY"))
 	}
 
 	// Create HTTP request

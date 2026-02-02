@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -55,9 +55,9 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	}
 
 	// Check API key
-	apiKey := os.Getenv("XAI_API_KEY")
+	apiKey := config.GetAPIKey("XAI_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "XAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("XAI_API_KEY"))
 	}
 
 	// Make request

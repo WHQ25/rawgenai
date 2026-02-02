@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/spf13/cobra"
 )
 
@@ -48,6 +49,7 @@ func TestVideoCreate_MissingPrompt(t *testing.T) {
 }
 
 func TestVideoCreate_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newVideoCmd()
@@ -210,6 +212,7 @@ func TestVideoCreate_LastFrameNotFound(t *testing.T) {
 }
 
 func TestVideoCreate_ValidRatios(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	ratios := []string{"16:9", "9:16", "4:3", "3:4", "1:1", "21:9"}
@@ -236,6 +239,7 @@ func TestVideoCreate_ValidRatios(t *testing.T) {
 }
 
 func TestVideoCreate_ValidResolutions(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	resolutions := []string{"480p", "720p", "1080p"}
@@ -262,6 +266,7 @@ func TestVideoCreate_ValidResolutions(t *testing.T) {
 }
 
 func TestVideoCreate_ValidDurations(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	durations := []string{"4", "5", "8", "10", "12"}
@@ -288,6 +293,7 @@ func TestVideoCreate_ValidDurations(t *testing.T) {
 }
 
 func TestVideoCreate_WithFirstFrame(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	tmpFile, err := os.CreateTemp("", "frame_*.jpg")
@@ -316,6 +322,7 @@ func TestVideoCreate_WithFirstFrame(t *testing.T) {
 }
 
 func TestVideoCreate_WithFirstAndLastFrame(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	firstFrame, err := os.CreateTemp("", "first_*.jpg")
@@ -351,6 +358,7 @@ func TestVideoCreate_WithFirstAndLastFrame(t *testing.T) {
 }
 
 func TestVideoCreate_FromFile(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	tmpFile, err := os.CreateTemp("", "prompt_*.txt")
@@ -380,6 +388,7 @@ func TestVideoCreate_FromFile(t *testing.T) {
 }
 
 func TestVideoCreate_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newVideoCmd()
@@ -467,6 +476,7 @@ func TestVideoStatus_MissingTaskID(t *testing.T) {
 }
 
 func TestVideoStatus_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newVideoCmd()
@@ -547,6 +557,7 @@ func TestVideoDownload_InvalidFormat(t *testing.T) {
 }
 
 func TestVideoDownload_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newVideoCmd()
@@ -570,6 +581,7 @@ func TestVideoDownload_MissingAPIKey(t *testing.T) {
 // ===== List Command Tests =====
 
 func TestVideoList_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newVideoCmd()
@@ -642,6 +654,7 @@ func TestVideoList_InvalidStatus(t *testing.T) {
 }
 
 func TestVideoList_ValidStatuses(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	statuses := []string{"queued", "running", "succeeded", "failed"}
@@ -697,6 +710,7 @@ func TestVideoDelete_MissingTaskID(t *testing.T) {
 }
 
 func TestVideoDelete_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ARK_API_KEY", "")
 
 	cmd := newVideoCmd()

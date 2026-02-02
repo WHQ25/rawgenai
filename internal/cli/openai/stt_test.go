@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 )
 
 func TestSTT_MissingFile(t *testing.T) {
@@ -128,6 +130,7 @@ func TestSTT_MissingAPIKey(t *testing.T) {
 	tmpFile.WriteString("fake audio content")
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newSTTCmd()
@@ -186,6 +189,7 @@ func TestSTT_FromFileFlag(t *testing.T) {
 	tmpFile.WriteString("fake audio content")
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newSTTCmd()
@@ -208,6 +212,7 @@ func TestSTT_FromFileFlag(t *testing.T) {
 }
 
 func TestSTT_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newSTTCmd()
@@ -335,7 +340,8 @@ func TestSTT_SupportedAudioFormats(t *testing.T) {
 			tmpFile.WriteString("fake audio content")
 			tmpFile.Close()
 
-			t.Setenv("OPENAI_API_KEY", "")
+			common.SetupNoConfigEnv(t)
+	t.Setenv("OPENAI_API_KEY", "")
 
 			cmd := newSTTCmd()
 			_, stderr, cmdErr := executeCommand(cmd, tmpFile.Name())

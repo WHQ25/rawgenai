@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/WHQ25/rawgenai/internal/cli/config"
 	"github.com/WHQ25/rawgenai/internal/cli/elevenlabs"
 	"github.com/WHQ25/rawgenai/internal/cli/google"
 	"github.com/WHQ25/rawgenai/internal/cli/grok"
@@ -25,6 +26,7 @@ func init() {
 	rootCmd.AddCommand(elevenlabs.Cmd)
 	rootCmd.AddCommand(grok.Cmd)
 	rootCmd.AddCommand(seed.Cmd)
+	rootCmd.AddCommand(config.Cmd)
 }
 
 func Execute() error {

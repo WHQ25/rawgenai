@@ -2,9 +2,9 @@ package video
 
 import (
 	"context"
-	"os"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	oai "github.com/openai/openai-go/v3"
 	"github.com/spf13/cobra"
 )
@@ -60,9 +60,9 @@ func runList(cmd *cobra.Command, flags *listFlags) error {
 	}
 
 	// Check API key
-	apiKey := os.Getenv("OPENAI_API_KEY")
+	apiKey := config.GetAPIKey("OPENAI_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "OPENAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("OPENAI_API_KEY"))
 	}
 
 	client := oai.NewClient()

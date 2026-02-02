@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/spf13/cobra"
 )
 
@@ -51,6 +52,7 @@ func TestCreate_MissingPrompt(t *testing.T) {
 }
 
 func TestCreate_InvalidSize(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newCreateCmd()
@@ -104,6 +106,7 @@ func TestCreate_InvalidDuration(t *testing.T) {
 }
 
 func TestCreate_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newCreateCmd()
@@ -162,6 +165,7 @@ func TestCreate_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newCreateCmd()
@@ -202,6 +206,7 @@ func TestCreate_FromFileNotFound(t *testing.T) {
 }
 
 func TestCreate_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newCreateCmd()
@@ -274,6 +279,7 @@ func TestCreate_InvalidImageFormat(t *testing.T) {
 }
 
 func TestCreate_ValidSizes(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	sizes := []string{"1280x720", "720x1280", "1792x1024", "1024x1792"}
@@ -301,6 +307,7 @@ func TestCreate_ValidSizes(t *testing.T) {
 }
 
 func TestCreate_ValidDurations(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	durations := []string{"4", "8", "12"}
@@ -339,6 +346,7 @@ func TestStatus_MissingVideoID(t *testing.T) {
 }
 
 func TestStatus_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newStatusCmd()
@@ -447,6 +455,7 @@ func TestDownload_ThumbnailRequiresJpg(t *testing.T) {
 }
 
 func TestDownload_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newDownloadCmd()
@@ -481,6 +490,7 @@ func TestDownload_ValidFlags(t *testing.T) {
 // ============ video list tests ============
 
 func TestList_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newListCmd()
@@ -543,6 +553,7 @@ func TestDelete_MissingVideoID(t *testing.T) {
 }
 
 func TestDelete_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newDeleteCmd()
@@ -594,6 +605,7 @@ func TestRemix_MissingPrompt(t *testing.T) {
 }
 
 func TestRemix_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	cmd := newRemixCmd()

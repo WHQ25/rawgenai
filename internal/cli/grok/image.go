@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -134,9 +135,9 @@ func runImageGenerate(cmd *cobra.Command, prompt string, flags *imageFlags) erro
 	}
 
 	// Check API key
-	apiKey := os.Getenv("XAI_API_KEY")
+	apiKey := config.GetAPIKey("XAI_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "XAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("XAI_API_KEY"))
 	}
 
 	// Build request body
@@ -229,9 +230,9 @@ func runImageEdit(cmd *cobra.Command, prompt string, flags *imageFlags) error {
 	}
 
 	// Check API key
-	apiKey := os.Getenv("XAI_API_KEY")
+	apiKey := config.GetAPIKey("XAI_API_KEY")
 	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "XAI_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("XAI_API_KEY"))
 	}
 
 	// Read image file

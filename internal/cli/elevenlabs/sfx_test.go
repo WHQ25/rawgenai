@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/WHQ25/rawgenai/internal/cli/common"
 )
 
 func TestSFX_MissingPrompt(t *testing.T) {
@@ -132,6 +134,7 @@ func TestSFX_InvalidFormat(t *testing.T) {
 }
 
 func TestSFX_MissingAPIKey(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ELEVENLABS_API_KEY", "")
 
 	cmd := newSFXCmd()
@@ -205,6 +208,7 @@ func TestSFX_FromFile(t *testing.T) {
 	}
 	tmpFile.Close()
 
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ELEVENLABS_API_KEY", "")
 
 	cmd := newSFXCmd()
@@ -226,6 +230,7 @@ func TestSFX_FromFile(t *testing.T) {
 }
 
 func TestSFX_FromStdin(t *testing.T) {
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ELEVENLABS_API_KEY", "")
 
 	cmd := newSFXCmd()
@@ -250,6 +255,7 @@ func TestSFX_FromStdin(t *testing.T) {
 
 func TestSFX_ValidDurationZeroAllowed(t *testing.T) {
 	// Duration 0 should be allowed (means auto)
+	common.SetupNoConfigEnv(t)
 	t.Setenv("ELEVENLABS_API_KEY", "")
 
 	cmd := newSFXCmd()

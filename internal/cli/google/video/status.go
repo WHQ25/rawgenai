@@ -2,10 +2,10 @@ package video
 
 import (
 	"context"
-	"os"
 	"strings"
 
 	"github.com/WHQ25/rawgenai/internal/cli/common"
+	"github.com/WHQ25/rawgenai/internal/config"
 	"github.com/spf13/cobra"
 	"google.golang.org/genai"
 )
@@ -43,12 +43,9 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	}
 
 	// Check API key
-	apiKey := os.Getenv("GEMINI_API_KEY")
+	apiKey := config.GetAPIKey("GEMINI_API_KEY", "GOOGLE_API_KEY")
 	if apiKey == "" {
-		apiKey = os.Getenv("GOOGLE_API_KEY")
-	}
-	if apiKey == "" {
-		return common.WriteError(cmd, "missing_api_key", "GEMINI_API_KEY or GOOGLE_API_KEY environment variable is not set")
+		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("GEMINI_API_KEY", "GOOGLE_API_KEY"))
 	}
 
 	// Create client
