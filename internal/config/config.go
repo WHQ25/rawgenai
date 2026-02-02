@@ -23,6 +23,7 @@ type Config struct {
 	KlingBaseURL     string `json:"kling_base_url,omitempty"`
 	RunwayAPIKey     string `json:"runway_api_key,omitempty"`
 	LumaAPIKey       string `json:"luma_api_key,omitempty"`
+	MinimaxAPIKey    string `json:"minimax_api_key,omitempty"`
 }
 
 // validKeys maps normalized key names to their JSON field names
@@ -40,6 +41,7 @@ var validKeys = map[string]string{
 	"kling_base_url":     "kling_base_url",
 	"runway_api_key":     "runway_api_key",
 	"luma_api_key":       "luma_api_key",
+	"minimax_api_key":    "minimax_api_key",
 }
 
 // envToConfigKey maps environment variable names to config keys
@@ -57,6 +59,7 @@ var envToConfigKey = map[string]string{
 	"KLING_BASE_URL":     "kling_base_url",
 	"RUNWAY_API_KEY":     "runway_api_key",
 	"LUMA_API_KEY":       "luma_api_key",
+	"MINIMAX_API_KEY":    "minimax_api_key",
 }
 
 // Path returns the config file path
@@ -196,6 +199,8 @@ func (c *Config) Get(key string) string {
 		return c.RunwayAPIKey
 	case "luma_api_key":
 		return c.LumaAPIKey
+	case "minimax_api_key":
+		return c.MinimaxAPIKey
 	default:
 		return ""
 	}
@@ -230,6 +235,8 @@ func (c *Config) Set(key, value string) error {
 		c.RunwayAPIKey = value
 	case "luma_api_key":
 		c.LumaAPIKey = value
+	case "minimax_api_key":
+		c.MinimaxAPIKey = value
 	default:
 		return fmt.Errorf("unknown key: %s", key)
 	}
