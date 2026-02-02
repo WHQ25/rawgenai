@@ -64,7 +64,7 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 | Google | ✅ | ✅ | ✅ | ✅ |
 | ElevenLabs | ✅ | - | - | - |
 | Grok | - | - | ✅ | ✅ |
-| Seed | ✅ | - | ✅ | - |
+| Seed | ✅ | - | ✅ | ✅ |
 
 ## CLI Structure
 
@@ -109,7 +109,7 @@ All output is JSON.
 - `ELEVENLABS_API_KEY` - ElevenLabs
 - `XAI_API_KEY` - Grok
 - `SEED_APP_ID`, `SEED_ACCESS_TOKEN` - ByteDance Seed TTS
-- `ARK_API_KEY` - ByteDance Ark (Seed Image)
+- `ARK_API_KEY` - ByteDance Ark (Seed Image/Video)
 
 ## License
 
