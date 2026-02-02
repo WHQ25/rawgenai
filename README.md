@@ -62,9 +62,10 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 |----------|:---:|:---:|:-----:|:-----:|
 | OpenAI | ✅ | ✅ | ✅ | ✅ |
 | Google | ✅ | ✅ | ✅ | ✅ |
-| ElevenLabs | ✅ | - | - | - |
+| ElevenLabs | ✅ | ✅ | - | - |
 | Grok | - | - | ✅ | ✅ |
 | Seed | ✅ | - | ✅ | ✅ |
+| Kling | - | - | - | ✅ |
 
 ## CLI Structure
 
@@ -72,7 +73,7 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 rawgenai <provider> <action> [options]
 ```
 
-Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`
+Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`, `kling`
 
 Actions: `tts`, `stt`, `image`, `video` (varies by provider)
 
@@ -110,6 +111,7 @@ All output is JSON.
 - `XAI_API_KEY` - Grok
 - `SEED_APP_ID`, `SEED_ACCESS_TOKEN` - ByteDance Seed TTS
 - `ARK_API_KEY` - ByteDance Ark (Seed Image/Video)
+- `KLING_ACCESS_KEY`, `KLING_SECRET_KEY` - Kling AI
 
 ## License
 
