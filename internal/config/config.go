@@ -21,6 +21,7 @@ type Config struct {
 	KlingAccessKey   string `json:"kling_access_key,omitempty"`
 	KlingSecretKey   string `json:"kling_secret_key,omitempty"`
 	KlingBaseURL     string `json:"kling_base_url,omitempty"`
+	RunwayAPIKey     string `json:"runway_api_key,omitempty"`
 }
 
 // validKeys maps normalized key names to their JSON field names
@@ -36,6 +37,7 @@ var validKeys = map[string]string{
 	"kling_access_key":   "kling_access_key",
 	"kling_secret_key":   "kling_secret_key",
 	"kling_base_url":     "kling_base_url",
+	"runway_api_key":     "runway_api_key",
 }
 
 // envToConfigKey maps environment variable names to config keys
@@ -51,6 +53,7 @@ var envToConfigKey = map[string]string{
 	"KLING_ACCESS_KEY":   "kling_access_key",
 	"KLING_SECRET_KEY":   "kling_secret_key",
 	"KLING_BASE_URL":     "kling_base_url",
+	"RUNWAY_API_KEY":     "runway_api_key",
 }
 
 // Path returns the config file path
@@ -186,6 +189,8 @@ func (c *Config) Get(key string) string {
 		return c.KlingSecretKey
 	case "kling_base_url":
 		return c.KlingBaseURL
+	case "runway_api_key":
+		return c.RunwayAPIKey
 	default:
 		return ""
 	}
@@ -216,6 +221,8 @@ func (c *Config) Set(key, value string) error {
 		c.KlingSecretKey = value
 	case "kling_base_url":
 		c.KlingBaseURL = value
+	case "runway_api_key":
+		c.RunwayAPIKey = value
 	default:
 		return fmt.Errorf("unknown key: %s", key)
 	}

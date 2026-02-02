@@ -7,6 +7,7 @@ import (
 	"github.com/WHQ25/rawgenai/internal/cli/grok"
 	"github.com/WHQ25/rawgenai/internal/cli/kling"
 	"github.com/WHQ25/rawgenai/internal/cli/openai"
+	"github.com/WHQ25/rawgenai/internal/cli/runway"
 	"github.com/WHQ25/rawgenai/internal/cli/seed"
 	"github.com/spf13/cobra"
 )
@@ -28,6 +29,7 @@ func init() {
 	rootCmd.AddCommand(grok.Cmd)
 	rootCmd.AddCommand(seed.Cmd)
 	rootCmd.AddCommand(kling.Cmd)
+	rootCmd.AddCommand(runway.Cmd)
 	rootCmd.AddCommand(config.Cmd)
 }
 
