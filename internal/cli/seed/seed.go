@@ -11,4 +11,5 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.AddCommand(ttsCmd)
 	Cmd.AddCommand(imageCmd)
+	Cmd.AddCommand(videoCmd)
 }
