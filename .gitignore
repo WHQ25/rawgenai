@@ -47,3 +47,6 @@ go.work.sum
 *.opus
 *.aac
 *.pcm
+
+# Research docs (local only)
+docs/research/
