@@ -66,6 +66,9 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 | Grok | - | - | ✅ | ✅ |
 | Seed | ✅ | - | ✅ | ✅ |
 | Kling | - | - | - | ✅ |
+| Runway | - | - | ✅ | ✅ |
+| Luma | - | - | ✅ | ✅ |
+| MiniMax | ✅ | - | ✅ | ✅ |
 
 ## CLI Structure
 
@@ -73,7 +76,7 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 rawgenai <provider> <action> [options]
 ```
 
-Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`, `kling`
+Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`, `kling`, `runway`, `luma`, `minimax`
 
 Actions: `tts`, `stt`, `image`, `video` (varies by provider)
 
@@ -102,9 +105,28 @@ All output is JSON.
 
 ## Configuration
 
-**Priority**: CLI flags > Environment variables > Defaults
+**Priority**: CLI flags > Environment variables > Config file > Defaults
 
-**Environment variables**:
+### Config Command
+
+```bash
+# Set API key
+rawgenai config set openai_api_key sk-xxx
+
+# List all config values
+rawgenai config list
+
+# Remove a config value
+rawgenai config unset openai_api_key
+
+# Show config file path
+rawgenai config path
+```
+
+Config file: `~/.config/rawgenai/config.json`
+
+### Environment Variables
+
 - `OPENAI_API_KEY` - OpenAI
 - `GEMINI_API_KEY` - Google Gemini
 - `ELEVENLABS_API_KEY` - ElevenLabs
@@ -112,6 +134,9 @@ All output is JSON.
 - `SEED_APP_ID`, `SEED_ACCESS_TOKEN` - ByteDance Seed TTS
 - `ARK_API_KEY` - ByteDance Ark (Seed Image/Video)
 - `KLING_ACCESS_KEY`, `KLING_SECRET_KEY` - Kling AI
+- `RUNWAY_API_KEY` - Runway
+- `LUMA_API_KEY` - Luma AI
+- `MINIMAX_API_KEY` - MiniMax
 
 ## License
 
