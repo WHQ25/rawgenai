@@ -2,6 +2,7 @@ package minimax
 
 import (
 	"github.com/WHQ25/rawgenai/internal/cli/minimax/image"
+	"github.com/WHQ25/rawgenai/internal/cli/minimax/music"
 	"github.com/WHQ25/rawgenai/internal/cli/minimax/tts"
 	"github.com/WHQ25/rawgenai/internal/cli/minimax/video"
 	"github.com/WHQ25/rawgenai/internal/cli/minimax/voice"
@@ -20,4 +21,5 @@ func init() {
 	Cmd.AddCommand(video.Cmd)
 	Cmd.AddCommand(tts.Cmd)
 	Cmd.AddCommand(voice.Cmd)
+	Cmd.AddCommand(music.Cmd)
 }
