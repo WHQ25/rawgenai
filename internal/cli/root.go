@@ -5,6 +5,7 @@ import (
 	"github.com/WHQ25/rawgenai/internal/cli/google"
 	"github.com/WHQ25/rawgenai/internal/cli/grok"
 	"github.com/WHQ25/rawgenai/internal/cli/openai"
+	"github.com/WHQ25/rawgenai/internal/cli/seed"
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +24,7 @@ func init() {
 	rootCmd.AddCommand(google.Cmd)
 	rootCmd.AddCommand(elevenlabs.Cmd)
 	rootCmd.AddCommand(grok.Cmd)
+	rootCmd.AddCommand(seed.Cmd)
 }
 
 func Execute() error {

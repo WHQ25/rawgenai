@@ -26,12 +26,17 @@ func PlayFile(path string) error {
 
 	switch ext {
 	case ".mp3":
-		return playMP3(file)
+		return PlayMP3(file)
 	case ".wav":
 		return playWAV(file)
 	default:
 		return fmt.Errorf("unsupported audio format: %s", ext)
 	}
+}
+
+// PlayMP3 plays MP3 audio from a reader (supports streaming).
+func PlayMP3(r io.Reader) error {
+	return playMP3(r)
 }
 
 func playMP3(r io.Reader) error {

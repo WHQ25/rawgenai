@@ -64,6 +64,7 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 | Google | ✅ | ✅ | ✅ | ✅ |
 | ElevenLabs | ✅ | - | - | - |
 | Grok | - | - | ✅ | ✅ |
+| Seed | ✅ | - | ✅ | - |
 
 ## CLI Structure
 
@@ -71,7 +72,7 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 rawgenai <provider> <action> [options]
 ```
 
-Providers: `openai`, `google`, `elevenlabs`, `grok`
+Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`
 
 Actions: `tts`, `stt`, `image`, `video` (varies by provider)
 
@@ -107,6 +108,8 @@ All output is JSON.
 - `GEMINI_API_KEY` - Google Gemini
 - `ELEVENLABS_API_KEY` - ElevenLabs
 - `XAI_API_KEY` - Grok
+- `SEED_APP_ID`, `SEED_ACCESS_TOKEN` - ByteDance Seed TTS
+- `ARK_API_KEY` - ByteDance Ark (Seed Image)
 
 ## License
 
