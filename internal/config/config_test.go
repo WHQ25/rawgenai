@@ -17,6 +17,9 @@ func TestNormalizeKey(t *testing.T) {
 		{"ARK_API_KEY", "ark_api_key"},
 		{"SEED_APP_ID", "seed_app_id"},
 		{"SEED_ACCESS_TOKEN", "seed_access_token"},
+		{"KLING_ACCESS_KEY", "kling_access_key"},
+		{"KLING_SECRET_KEY", "kling_secret_key"},
+		{"KLING_BASE_URL", "kling_base_url"},
 		{"INVALID_KEY", ""},
 		{"", ""},
 	}
@@ -42,6 +45,13 @@ func TestGetAPIKey_EnvPriority(t *testing.T) {
 }
 
 func TestGetAPIKey_EmptyEnv(t *testing.T) {
+	// Use temp HOME to avoid reading real config file
+	tmpDir, err := os.MkdirTemp("", "config_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+	t.Setenv("HOME", tmpDir)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	// Without config file, should return empty
@@ -52,6 +62,13 @@ func TestGetAPIKey_EmptyEnv(t *testing.T) {
 }
 
 func TestGetAPIKey_MultipleKeys(t *testing.T) {
+	// Use temp HOME to avoid reading real config file
+	tmpDir, err := os.MkdirTemp("", "config_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+	t.Setenv("HOME", tmpDir)
 	t.Setenv("GEMINI_API_KEY", "")
 	t.Setenv("GOOGLE_API_KEY", "google-key")
 
@@ -102,6 +119,9 @@ func TestConfig_GetSet(t *testing.T) {
 		{"ark_api_key", "ark-test"},
 		{"seed_app_id", "app-test"},
 		{"seed_access_token", "token-test"},
+		{"kling_access_key", "kling-access-test"},
+		{"kling_secret_key", "kling-secret-test"},
+		{"kling_base_url", "https://api.example.com"},
 	}
 
 	for _, tt := range tests {
@@ -187,6 +207,7 @@ func TestValidKeys(t *testing.T) {
 		"openai_api_key", "gemini_api_key", "google_api_key",
 		"elevenlabs_api_key", "xai_api_key", "ark_api_key",
 		"seed_app_id", "seed_access_token",
+		"kling_access_key", "kling_secret_key", "kling_base_url",
 	}
 
 	if len(keys) != len(expectedKeys) {

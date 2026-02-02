@@ -83,17 +83,9 @@ func TestConfigList(t *testing.T) {
 		t.Error("expected success to be true")
 	}
 
-	// All keys should be "(not set)" initially
-	expectedKeys := []string{
-		"openai_api_key", "gemini_api_key", "google_api_key",
-		"elevenlabs_api_key", "xai_api_key", "ark_api_key",
-		"seed_app_id", "seed_access_token",
-	}
-
-	for _, key := range expectedKeys {
-		if resp.Keys[key] != "(not set)" {
-			t.Errorf("expected key %s to be '(not set)', got: %s", key, resp.Keys[key])
-		}
+	// Empty config should return empty keys map (unset keys are hidden)
+	if len(resp.Keys) != 0 {
+		t.Errorf("expected empty keys map for new config, got %d keys", len(resp.Keys))
 	}
 }
 
@@ -189,13 +181,13 @@ func TestConfigUnset(t *testing.T) {
 		t.Error("expected success to be true")
 	}
 
-	// Verify it's unset
+	// Verify it's unset (key should not appear in list)
 	listStdout, _, _ := executeCommand(Cmd, "list")
 	var listResp listResponse
 	json.Unmarshal([]byte(strings.TrimSpace(listStdout)), &listResp)
 
-	if listResp.Keys["openai_api_key"] != "(not set)" {
-		t.Errorf("expected key to be unset, got: %s", listResp.Keys["openai_api_key"])
+	if _, exists := listResp.Keys["openai_api_key"]; exists {
+		t.Errorf("expected key to not exist in list after unset, got: %s", listResp.Keys["openai_api_key"])
 	}
 }
 

@@ -18,6 +18,9 @@ type Config struct {
 	ArkAPIKey        string `json:"ark_api_key,omitempty"`
 	SeedAppID        string `json:"seed_app_id,omitempty"`
 	SeedAccessToken  string `json:"seed_access_token,omitempty"`
+	KlingAccessKey   string `json:"kling_access_key,omitempty"`
+	KlingSecretKey   string `json:"kling_secret_key,omitempty"`
+	KlingBaseURL     string `json:"kling_base_url,omitempty"`
 }
 
 // validKeys maps normalized key names to their JSON field names
@@ -30,6 +33,9 @@ var validKeys = map[string]string{
 	"ark_api_key":        "ark_api_key",
 	"seed_app_id":        "seed_app_id",
 	"seed_access_token":  "seed_access_token",
+	"kling_access_key":   "kling_access_key",
+	"kling_secret_key":   "kling_secret_key",
+	"kling_base_url":     "kling_base_url",
 }
 
 // envToConfigKey maps environment variable names to config keys
@@ -42,6 +48,9 @@ var envToConfigKey = map[string]string{
 	"ARK_API_KEY":        "ark_api_key",
 	"SEED_APP_ID":        "seed_app_id",
 	"SEED_ACCESS_TOKEN":  "seed_access_token",
+	"KLING_ACCESS_KEY":   "kling_access_key",
+	"KLING_SECRET_KEY":   "kling_secret_key",
+	"KLING_BASE_URL":     "kling_base_url",
 }
 
 // Path returns the config file path
@@ -171,6 +180,12 @@ func (c *Config) Get(key string) string {
 		return c.SeedAppID
 	case "seed_access_token":
 		return c.SeedAccessToken
+	case "kling_access_key":
+		return c.KlingAccessKey
+	case "kling_secret_key":
+		return c.KlingSecretKey
+	case "kling_base_url":
+		return c.KlingBaseURL
 	default:
 		return ""
 	}
@@ -195,6 +210,12 @@ func (c *Config) Set(key, value string) error {
 		c.SeedAppID = value
 	case "seed_access_token":
 		c.SeedAccessToken = value
+	case "kling_access_key":
+		c.KlingAccessKey = value
+	case "kling_secret_key":
+		c.KlingSecretKey = value
+	case "kling_base_url":
+		c.KlingBaseURL = value
 	default:
 		return fmt.Errorf("unknown key: %s", key)
 	}
