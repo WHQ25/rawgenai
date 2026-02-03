@@ -213,6 +213,77 @@ func TestTTS_InvalidFormat(t *testing.T) {
 	}
 }
 
+func TestTTS_InvalidTextNormalization(t *testing.T) {
+	cmd := newTTSCmd()
+	_, stderr, err := executeCommand(cmd, "Hello", "-o", "out.mp3", "--text-normalization", "invalid")
+
+	if err == nil {
+		t.Fatal("expected error for invalid text normalization")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "invalid_text_normalization" {
+		t.Errorf("expected error code 'invalid_text_normalization', got: %s", errorObj["code"])
+	}
+}
+
+func TestTTS_ValidTextNormalization(t *testing.T) {
+	validValues := []string{"auto", "on", "off"}
+
+	for _, value := range validValues {
+		t.Run(value, func(t *testing.T) {
+			common.SetupNoConfigEnv(t)
+			t.Setenv("ELEVENLABS_API_KEY", "")
+
+			cmd := newTTSCmd()
+			_, stderr, err := executeCommand(cmd, "Hello", "-o", "out.mp3", "--text-normalization", value)
+
+			if err == nil {
+				t.Fatal("expected error (missing api key), got success")
+			}
+
+			var resp map[string]any
+			if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+				t.Fatalf("expected JSON error output, got: %s", stderr)
+			}
+
+			// Should pass validation and reach API key check
+			errorObj := resp["error"].(map[string]any)
+			if errorObj["code"] != "missing_api_key" {
+				t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+			}
+		})
+	}
+}
+
+func TestTTS_StreamFlag(t *testing.T) {
+	common.SetupNoConfigEnv(t)
+	t.Setenv("ELEVENLABS_API_KEY", "")
+
+	cmd := newTTSCmd()
+	_, stderr, err := executeCommand(cmd, "Hello", "-o", "out.mp3", "--stream")
+
+	if err == nil {
+		t.Fatal("expected error (missing api key), got success")
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stderr)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON error output, got: %s", stderr)
+	}
+
+	// Should pass validation and reach API key check
+	errorObj := resp["error"].(map[string]any)
+	if errorObj["code"] != "missing_api_key" {
+		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
 func TestTTS_MissingAPIKey(t *testing.T) {
 	common.SetupNoConfigEnv(t)
 	t.Setenv("ELEVENLABS_API_KEY", "")
@@ -238,35 +309,16 @@ func TestTTS_MissingAPIKey(t *testing.T) {
 func TestTTS_ValidFlags(t *testing.T) {
 	cmd := newTTSCmd()
 
-	if cmd.Flag("output") == nil {
-		t.Error("expected --output flag")
+	expectedFlags := []string{
+		"output", "file", "voice", "model", "format", "language",
+		"stability", "similarity", "style", "speed",
+		"speaker-boost", "text-normalization", "stream", "speak",
 	}
-	if cmd.Flag("file") == nil {
-		t.Error("expected --file flag")
-	}
-	if cmd.Flag("voice") == nil {
-		t.Error("expected --voice flag")
-	}
-	if cmd.Flag("model") == nil {
-		t.Error("expected --model flag")
-	}
-	if cmd.Flag("format") == nil {
-		t.Error("expected --format flag")
-	}
-	if cmd.Flag("stability") == nil {
-		t.Error("expected --stability flag")
-	}
-	if cmd.Flag("similarity") == nil {
-		t.Error("expected --similarity flag")
-	}
-	if cmd.Flag("style") == nil {
-		t.Error("expected --style flag")
-	}
-	if cmd.Flag("speed") == nil {
-		t.Error("expected --speed flag")
-	}
-	if cmd.Flag("speak") == nil {
-		t.Error("expected --speak flag")
+
+	for _, flag := range expectedFlags {
+		if cmd.Flag(flag) == nil {
+			t.Errorf("expected --%s flag", flag)
+		}
 	}
 }
 
@@ -297,26 +349,24 @@ func TestTTS_SpeakWithoutOutput(t *testing.T) {
 func TestTTS_DefaultValues(t *testing.T) {
 	cmd := newTTSCmd()
 
-	if cmd.Flag("voice").DefValue != "Rachel" {
-		t.Errorf("expected default voice 'Rachel', got: %s", cmd.Flag("voice").DefValue)
+	defaults := map[string]string{
+		"voice":              "Rachel",
+		"model":              "eleven_multilingual_v2",
+		"format":             "mp3_44100_128",
+		"language":           "",
+		"stability":          "0.5",
+		"similarity":         "0.75",
+		"style":              "0",
+		"speed":              "1",
+		"speaker-boost":      "true",
+		"text-normalization": "auto",
+		"stream":             "false",
 	}
-	if cmd.Flag("model").DefValue != "eleven_multilingual_v2" {
-		t.Errorf("expected default model 'eleven_multilingual_v2', got: %s", cmd.Flag("model").DefValue)
-	}
-	if cmd.Flag("format").DefValue != "mp3_44100_128" {
-		t.Errorf("expected default format 'mp3_44100_128', got: %s", cmd.Flag("format").DefValue)
-	}
-	if cmd.Flag("stability").DefValue != "0.5" {
-		t.Errorf("expected default stability '0.5', got: %s", cmd.Flag("stability").DefValue)
-	}
-	if cmd.Flag("similarity").DefValue != "0.75" {
-		t.Errorf("expected default similarity '0.75', got: %s", cmd.Flag("similarity").DefValue)
-	}
-	if cmd.Flag("style").DefValue != "0" {
-		t.Errorf("expected default style '0', got: %s", cmd.Flag("style").DefValue)
-	}
-	if cmd.Flag("speed").DefValue != "1" {
-		t.Errorf("expected default speed '1', got: %s", cmd.Flag("speed").DefValue)
+
+	for flag, expected := range defaults {
+		if cmd.Flag(flag).DefValue != expected {
+			t.Errorf("expected default %s '%s', got: %s", flag, expected, cmd.Flag(flag).DefValue)
+		}
 	}
 }
 

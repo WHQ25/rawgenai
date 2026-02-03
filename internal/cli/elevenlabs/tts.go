@@ -33,26 +33,56 @@ var defaultVoices = map[string]string{
 }
 
 var ttsOutputFormats = map[string]bool{
+	// MP3 formats
 	"mp3_22050_32":  true,
+	"mp3_24000_48":  true,
+	"mp3_44100_32":  true,
+	"mp3_44100_64":  true,
+	"mp3_44100_96":  true,
 	"mp3_44100_128": true,
 	"mp3_44100_192": true,
-	"pcm_16000":     true,
-	"pcm_22050":     true,
-	"pcm_24000":     true,
-	"pcm_44100":     true,
+	// Opus formats
+	"opus_48000_32":  true,
+	"opus_48000_64":  true,
+	"opus_48000_96":  true,
+	"opus_48000_128": true,
+	"opus_48000_192": true,
+	// PCM formats
+	"pcm_8000":  true,
+	"pcm_16000": true,
+	"pcm_22050": true,
+	"pcm_24000": true,
+	"pcm_32000": true,
+	"pcm_44100": true,
+	"pcm_48000": true,
+	// WAV formats
+	"wav_8000":  true,
+	"wav_16000": true,
+	"wav_22050": true,
+	"wav_24000": true,
+	"wav_32000": true,
+	"wav_44100": true,
+	"wav_48000": true,
+	// Telephony formats
+	"alaw_8000": true,
+	"ulaw_8000": true,
 }
 
 type ttsFlags struct {
-	output     string
-	promptFile string
-	voice      string
-	model      string
-	format     string
-	stability  float64
-	similarity float64
-	style      float64
-	speed      float64
-	speak      bool
+	output            string
+	promptFile        string
+	voice             string
+	model             string
+	format            string
+	language          string
+	stability         float64
+	similarity        float64
+	style             float64
+	speed             float64
+	speakerBoost      bool
+	textNormalization string
+	stream            bool
+	speak             bool
 }
 
 type ttsResponse struct {
@@ -61,12 +91,15 @@ type ttsResponse struct {
 	Voice      string `json:"voice,omitempty"`
 	Model      string `json:"model,omitempty"`
 	Characters int    `json:"characters,omitempty"`
+	Stream     bool   `json:"stream,omitempty"`
 }
 
 type ttsRequestBody struct {
-	Text          string        `json:"text"`
-	ModelID       string        `json:"model_id"`
-	VoiceSettings voiceSettings `json:"voice_settings"`
+	Text                   string        `json:"text"`
+	ModelID                string        `json:"model_id"`
+	LanguageCode           string        `json:"language_code,omitempty"`
+	VoiceSettings          voiceSettings `json:"voice_settings"`
+	ApplyTextNormalization string        `json:"apply_text_normalization,omitempty"`
 }
 
 type voiceSettings struct {
@@ -74,6 +107,7 @@ type voiceSettings struct {
 	SimilarityBoost float64 `json:"similarity_boost"`
 	Style           float64 `json:"style"`
 	Speed           float64 `json:"speed"`
+	UseSpeakerBoost *bool   `json:"use_speaker_boost,omitempty"`
 }
 
 var ttsCmd = newTTSCmd()
@@ -82,9 +116,13 @@ func newTTSCmd() *cobra.Command {
 	flags := &ttsFlags{}
 
 	cmd := &cobra.Command{
-		Use:           "tts [text]",
-		Short:         "Text to Speech using ElevenLabs voices",
-		Long:          "Convert text to speech using ElevenLabs TTS models with high-quality voices.",
+		Use:   "tts [text] [flags]",
+		Short: "Text to Speech using ElevenLabs voices",
+		Example: `  rawgenai elevenlabs tts "Hello world" -o hello.mp3
+  rawgenai elevenlabs tts "Hello" --speak
+  rawgenai elevenlabs tts "Hello" --stream --speak -m eleven_flash_v2_5
+  rawgenai elevenlabs tts "你好世界" -o zh.mp3 -m eleven_v3 -l zh
+  echo "Hello" | rawgenai elevenlabs tts -o hello.mp3`,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -92,15 +130,19 @@ func newTTSCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&flags.output, "output", "o", "", "Output file path (.mp3, .wav, .pcm)")
+	cmd.Flags().StringVarP(&flags.output, "output", "o", "", "Output file path (.mp3, .wav, .pcm, .opus)")
 	cmd.Flags().StringVar(&flags.promptFile, "file", "", "Input text file")
-	cmd.Flags().StringVarP(&flags.voice, "voice", "v", "Rachel", "Voice name or ID")
-	cmd.Flags().StringVarP(&flags.model, "model", "m", "eleven_multilingual_v2", "Model ID")
+	cmd.Flags().StringVarP(&flags.voice, "voice", "v", "Rachel", "Voice: Rachel, Josh, Bella, Antoni, Domi, Elli, Arnold, Adam, Sam")
+	cmd.Flags().StringVarP(&flags.model, "model", "m", "eleven_multilingual_v2", "Model: eleven_multilingual_v2, eleven_v3, eleven_flash_v2_5")
 	cmd.Flags().StringVarP(&flags.format, "format", "f", "mp3_44100_128", "Output format")
+	cmd.Flags().StringVarP(&flags.language, "language", "l", "", "Language code (ISO 639-1)")
 	cmd.Flags().Float64Var(&flags.stability, "stability", 0.5, "Voice stability (0.0-1.0)")
 	cmd.Flags().Float64Var(&flags.similarity, "similarity", 0.75, "Similarity boost (0.0-1.0)")
 	cmd.Flags().Float64Var(&flags.style, "style", 0.0, "Style exaggeration (0.0-1.0)")
 	cmd.Flags().Float64Var(&flags.speed, "speed", 1.0, "Speaking speed (0.25-4.0)")
+	cmd.Flags().BoolVar(&flags.speakerBoost, "speaker-boost", true, "Boost similarity to original voice")
+	cmd.Flags().StringVar(&flags.textNormalization, "text-normalization", "auto", "Text normalization: auto, on, off")
+	cmd.Flags().BoolVar(&flags.stream, "stream", false, "Use streaming mode for lower latency")
 	cmd.Flags().BoolVar(&flags.speak, "speak", false, "Play audio after generation")
 
 	return cmd
@@ -139,7 +181,13 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 
 	// Validate format
 	if !ttsOutputFormats[outputFormat] {
-		return common.WriteError(cmd, "invalid_format", fmt.Sprintf("unsupported format '%s', supported: mp3_22050_32, mp3_44100_128, mp3_44100_192, pcm_16000, pcm_22050, pcm_24000, pcm_44100", outputFormat))
+		return common.WriteError(cmd, "invalid_format", fmt.Sprintf("unsupported format '%s', see docs for supported formats", outputFormat))
+	}
+
+	// Validate text normalization
+	validTextNorm := map[string]bool{"auto": true, "on": true, "off": true}
+	if !validTextNorm[flags.textNormalization] {
+		return common.WriteError(cmd, "invalid_text_normalization", "text normalization must be auto, on, or off")
 	}
 
 	// Validate speed
@@ -173,14 +221,19 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 
 	// Build request body
 	reqBody := ttsRequestBody{
-		Text:    text,
-		ModelID: flags.model,
+		Text:         text,
+		ModelID:      flags.model,
+		LanguageCode: flags.language,
 		VoiceSettings: voiceSettings{
 			Stability:       flags.stability,
 			SimilarityBoost: flags.similarity,
 			Style:           flags.style,
 			Speed:           flags.speed,
+			UseSpeakerBoost: &flags.speakerBoost,
 		},
+	}
+	if flags.textNormalization != "auto" {
+		reqBody.ApplyTextNormalization = flags.textNormalization
 	}
 
 	bodyBytes, err := json.Marshal(reqBody)
@@ -189,8 +242,13 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 	}
 
 	// Make API request
-	url := fmt.Sprintf("%s/text-to-speech/%s?output_format=%s", baseURL, voiceID, outputFormat)
-	req, err := http.NewRequest("POST", url, bytes.NewReader(bodyBytes))
+	var apiURL string
+	if flags.stream {
+		apiURL = fmt.Sprintf("%s/text-to-speech/%s/stream?output_format=%s", baseURL, voiceID, outputFormat)
+	} else {
+		apiURL = fmt.Sprintf("%s/text-to-speech/%s?output_format=%s", baseURL, voiceID, outputFormat)
+	}
+	req, err := http.NewRequest("POST", apiURL, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return common.WriteError(cmd, "internal_error", fmt.Sprintf("cannot create request: %s", err.Error()))
 	}
@@ -216,40 +274,69 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 	}
 
 	// Get absolute path for output
-	absPath, err := filepath.Abs(outputPath)
-	if err != nil {
-		absPath = outputPath
-	}
-
-	// Write to file
-	outFile, err := os.Create(absPath)
-	if err != nil {
-		if useTempFile {
-			os.Remove(outputPath)
+	var absPath string
+	if outputPath != "" {
+		absPath, err = filepath.Abs(outputPath)
+		if err != nil {
+			absPath = outputPath
 		}
-		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot create output file: %s", err.Error()))
 	}
-	defer outFile.Close()
 
-	_, err = io.Copy(outFile, resp.Body)
-	if err != nil {
-		if useTempFile {
-			os.Remove(outputPath)
+	// Handle streaming playback: play directly from HTTP response
+	if flags.stream && flags.speak {
+		var audioReader io.Reader = resp.Body
+
+		// If output file specified, tee to file while playing
+		if absPath != "" {
+			outFile, err := os.Create(absPath)
+			if err != nil {
+				return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot create output file: %s", err.Error()))
+			}
+			defer outFile.Close()
+			audioReader = io.TeeReader(resp.Body, outFile)
 		}
-		return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
-	}
 
-	// Play audio if --speak is set
-	if flags.speak {
-		outFile.Close() // Close before playing
-		if err := common.PlayFile(absPath); err != nil {
-			if useTempFile {
+		// Stream directly to player
+		if err := common.PlayMP3(audioReader); err != nil {
+			if useTempFile && absPath != "" {
 				os.Remove(absPath)
 			}
 			return common.WriteError(cmd, "playback_error", fmt.Sprintf("cannot play audio: %s", err.Error()))
 		}
-		if useTempFile {
+		if useTempFile && absPath != "" {
 			os.Remove(absPath)
+		}
+	} else {
+		// Non-streaming: write to file first
+		outFile, err := os.Create(absPath)
+		if err != nil {
+			if useTempFile {
+				os.Remove(outputPath)
+			}
+			return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot create output file: %s", err.Error()))
+		}
+		defer outFile.Close()
+
+		_, err = io.Copy(outFile, resp.Body)
+		if err != nil {
+			if useTempFile {
+				os.Remove(outputPath)
+			}
+			return common.WriteError(cmd, "output_write_error", fmt.Sprintf("cannot write output file: %s", err.Error()))
+		}
+
+		// Play audio if --speak is set
+		if flags.speak {
+			outFile.Close() // Close before playing
+			if err := common.PlayFile(absPath); err != nil {
+				if useTempFile {
+					os.Remove(absPath)
+				}
+				return common.WriteError(cmd, "playback_error", fmt.Sprintf("cannot play audio: %s", err.Error()))
+			}
+			if useTempFile {
+				os.Remove(absPath)
+			}
 		}
 	}
 
@@ -260,6 +347,7 @@ func runTTS(cmd *cobra.Command, args []string, flags *ttsFlags) error {
 		Voice:      flags.voice,
 		Model:      flags.model,
 		Characters: len(text),
+		Stream:     flags.stream,
 	}
 	if useTempFile {
 		result.File = "" // Don't report temp file path
