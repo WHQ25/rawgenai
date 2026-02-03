@@ -412,6 +412,36 @@ func TestVoiceList_ValidTypes(t *testing.T) {
 	}
 }
 
+func TestVoiceList_TTSType(t *testing.T) {
+	// TTS type doesn't require API key - it returns static voice list
+	cmd := NewCmd()
+	stdout, _, err := executeCommand(cmd, "list", "--type", "tts")
+
+	if err != nil {
+		t.Fatalf("unexpected error for tts type: %v", err)
+	}
+
+	var resp map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(stdout)), &resp); jsonErr != nil {
+		t.Fatalf("expected JSON output, got: %s", stdout)
+	}
+
+	if resp["success"] != true {
+		t.Error("expected success: true")
+	}
+	if resp["type"] != "tts" {
+		t.Errorf("expected type 'tts', got: %v", resp["type"])
+	}
+
+	voices, ok := resp["voices"].([]any)
+	if !ok {
+		t.Fatal("expected voices array")
+	}
+	if len(voices) == 0 {
+		t.Error("expected non-empty voices list")
+	}
+}
+
 // =============================================================================
 // Delete Tests
 // =============================================================================

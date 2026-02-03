@@ -316,17 +316,47 @@ func newListCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&flags.voiceType, "type", "t", "custom", "Voice type: custom, official")
+	cmd.Flags().StringVarP(&flags.voiceType, "type", "t", "custom", "Voice type: custom, official, tts")
 	cmd.Flags().IntVarP(&flags.limit, "limit", "l", 30, "Maximum voices to return (1-500)")
 	cmd.Flags().IntVarP(&flags.page, "page", "p", 1, "Page number")
 
 	return cmd
 }
 
+// TTS preset voices (bilingual: zh/en)
+var ttsVoices = []map[string]any{
+	{"voice_id": "genshin_vindi2", "voice_name": "阳光少年 / Sunny", "category": "Young Male", "languages": []string{"zh", "en"}},
+	{"voice_id": "zhinen_xuesheng", "voice_name": "懂事小弟 / Sage", "category": "Young Male", "languages": []string{"zh", "en"}},
+	{"voice_id": "ai_kaiya", "voice_name": "阳光男生 / Shine", "category": "Young Male", "languages": []string{"zh", "en"}},
+	{"voice_id": "ai_chenjiahao_712", "voice_name": "文艺小哥 / Lyric", "category": "Young Male", "languages": []string{"zh", "en"}},
+	{"voice_id": "ai_shatang", "voice_name": "青春少女 / Blossom", "category": "Young Female", "languages": []string{"zh", "en"}},
+	{"voice_id": "genshin_klee2", "voice_name": "温柔小妹 / Peppy", "category": "Young Female", "languages": []string{"zh", "en"}},
+	{"voice_id": "genshin_kirara", "voice_name": "元气少女 / Dove", "category": "Young Female", "languages": []string{"zh", "en"}},
+	{"voice_id": "chat1_female_new-3", "voice_name": "温柔姐姐 / Tender", "category": "Adult Female", "languages": []string{"zh", "en"}},
+	{"voice_id": "chengshu_jiejie", "voice_name": "优雅贵妇 / Grace", "category": "Adult Female", "languages": []string{"zh", "en"}},
+	{"voice_id": "you_pingjing", "voice_name": "温柔妈妈 / Helen", "category": "Adult Female", "languages": []string{"zh", "en"}},
+	{"voice_id": "ai_huangyaoshi_712", "voice_name": "稳重老爸 / Rock", "category": "Adult Male", "languages": []string{"zh", "en"}},
+	{"voice_id": "ai_laoguowang_712", "voice_name": "严肃上司 / Titan", "category": "Adult Male", "languages": []string{"zh", "en"}},
+	{"voice_id": "cartoon-boy-07", "voice_name": "活泼男童 / Zippy", "category": "Child", "languages": []string{"zh", "en"}},
+	{"voice_id": "cartoon-girl-01", "voice_name": "俏皮女童 / Sprite", "category": "Child", "languages": []string{"zh", "en"}},
+	{"voice_id": "laopopo_speech02", "voice_name": "唠叨奶奶 / Prattle", "category": "Elderly", "languages": []string{"zh", "en"}},
+	{"voice_id": "heainainai_speech02", "voice_name": "和蔼奶奶 / Hearth", "category": "Elderly", "languages": []string{"zh", "en"}},
+}
+
 func runList(cmd *cobra.Command, flags *listFlags) error {
 	// Validate type
-	if flags.voiceType != "custom" && flags.voiceType != "official" {
-		return common.WriteError(cmd, "invalid_type", "type must be 'custom' or 'official'")
+	if flags.voiceType != "custom" && flags.voiceType != "official" && flags.voiceType != "tts" {
+		return common.WriteError(cmd, "invalid_type", "type must be 'custom', 'official', or 'tts'")
+	}
+
+	// Handle TTS voices (no API call needed)
+	if flags.voiceType == "tts" {
+		return common.WriteSuccess(cmd, map[string]any{
+			"success": true,
+			"type":    "tts",
+			"voices":  ttsVoices,
+			"count":   len(ttsVoices),
+		})
 	}
 
 	// Validate limit
