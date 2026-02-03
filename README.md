@@ -55,7 +55,7 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 | **STT** | Speech to Text - Transcribe audio to text |
 | **Image** | Generate images from text prompts |
 | **Video** | Generate videos from text/image prompts |
-| **Music** | Generate music from lyrics |
+| **Music** | Generate music from prompts or lyrics |
 
 ## Supported Providers
 
@@ -63,7 +63,7 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 |----------|:---:|:---:|:-----:|:-----:|:-----:|
 | OpenAI | ✅ | ✅ | ✅ | ✅ | - |
 | Google | ✅ | ✅ | ✅ | ✅ | - |
-| ElevenLabs | ✅ | ✅ | - | - | - |
+| ElevenLabs | ✅ | ✅ | - | - | ✅ |
 | Grok | - | - | ✅ | ✅ | - |
 | Seed | ✅ | - | ✅ | ✅ | - |
 | Kling | - | - | - | ✅ | - |
