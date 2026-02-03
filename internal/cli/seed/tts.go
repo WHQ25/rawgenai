@@ -62,6 +62,7 @@ type ttsFlags struct {
 	speed      int
 	volume     int
 	speak      bool
+	context    string
 }
 
 type ttsResponse struct {
@@ -94,6 +95,7 @@ func newTTSCmd() *cobra.Command {
 	cmd.Flags().IntVar(&flags.speed, "speed", 0, "Speech rate: -50 to 100 (0 = normal)")
 	cmd.Flags().IntVar(&flags.volume, "volume", 0, "Volume: -50 to 100 (0 = normal)")
 	cmd.Flags().BoolVar(&flags.speak, "speak", false, "Play audio after generation")
+	cmd.Flags().StringVar(&flags.context, "context", "", "Emotion/style context (e.g., \"用悲伤的语气说\")")
 
 	return cmd
 }
@@ -317,20 +319,27 @@ func streamAudio(ctx context.Context, appID, accessToken, text string, flags *tt
 }
 
 func buildSessionPayload(text string, flags *ttsFlags) []byte {
+	reqParams := map[string]any{
+		"text":    text,
+		"speaker": flags.voice,
+		"audio_params": map[string]any{
+			"format":        flags.format,
+			"sample_rate":   flags.sampleRate,
+			"speech_rate":   flags.speed,
+			"loudness_rate": flags.volume,
+		},
+	}
+
+	// Add context_texts if provided (TTS 2.0 emotion control)
+	if flags.context != "" {
+		reqParams["additions"] = fmt.Sprintf(`{"context_texts":["%s"]}`, flags.context)
+	}
+
 	payload := map[string]any{
 		"user": map[string]any{
 			"uid": uuid.New().String(),
 		},
-		"req_params": map[string]any{
-			"text":    text,
-			"speaker": flags.voice,
-			"audio_params": map[string]any{
-				"format":       flags.format,
-				"sample_rate":  flags.sampleRate,
-				"speech_rate":  flags.speed,
-				"loudness_rate": flags.volume,
-			},
-		},
+		"req_params": reqParams,
 	}
 	data, _ := json.Marshal(payload)
 	return data
