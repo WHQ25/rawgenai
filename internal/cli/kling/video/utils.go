@@ -1,6 +1,8 @@
 package video
 
 import (
+	"io"
+
 	"github.com/spf13/cobra"
 )
 
@@ -24,4 +26,14 @@ func HandleAPIError(cmd *cobra.Command, err error) error {
 // HandleKlingError handles Kling API error codes and returns appropriate CLI error.
 func HandleKlingError(cmd *cobra.Command, code int, message string) error {
 	return handleKlingError(cmd, code, message)
+}
+
+// GetPrompt resolves prompt text from args, file, or stdin.
+func GetPrompt(args []string, filePath string, stdin io.Reader) (string, error) {
+	return getPrompt(args, filePath, stdin)
+}
+
+// ResolveImageURL returns the image URL or base64 string for API request.
+func ResolveImageURL(input string) (string, error) {
+	return resolveImageURL(input)
 }

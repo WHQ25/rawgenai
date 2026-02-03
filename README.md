@@ -49,27 +49,25 @@ go install github.com/WHQ25/rawgenai/cmd/rawgenai@latest
 
 ## Capabilities
 
-| Capability | Description |
-|------------|-------------|
-| **TTS** | Text to Speech - Convert text to audio |
-| **STT** | Speech to Text - Transcribe audio to text |
-| **Image** | Generate images from text prompts |
-| **Video** | Generate videos from text/image prompts |
-| **Music** | Generate music from prompts or lyrics |
+| Category | Capabilities |
+|----------|--------------|
+| **Image** | image generation |
+| **Audio** | tts, stt, sfx, music, dialogue, voice |
+| **Video** | video generation |
 
-## Supported Providers
+## Supported Provider Actions
 
-| Provider | TTS | STT | Image | Video | Music |
-|----------|:---:|:---:|:-----:|:-----:|:-----:|
-| OpenAI | ✅ | ✅ | ✅ | ✅ | - |
-| Google | ✅ | ✅ | ✅ | ✅ | - |
-| ElevenLabs | ✅ | ✅ | - | - | ✅ |
-| Grok | - | - | ✅ | ✅ | - |
-| Seed | ✅ | - | ✅ | ✅ | - |
-| Kling | - | - | - | ✅ | - |
-| Runway | - | - | ✅ | ✅ | - |
-| Luma | - | - | ✅ | ✅ | - |
-| MiniMax | ✅ | - | ✅ | ✅ | ✅ |
+| Provider | Image | Audio | Video |
+|----------|-------|-------|-------|
+| OpenAI | image | tts, stt | video (create, remix) |
+| Google | image | tts, stt | video (create, extend) |
+| ElevenLabs | - | tts, stt, sfx, music, dialogue, voice (design, create, preview) | - |
+| Grok | image | - | video (create, edit) |
+| Seed | image | tts | video (create) |
+| Kling | image (create) | tts, voice (create) | video (create, create-from-text, create-from-image, create-motion-control, create-avatar, extend, add-sound, element (create)) |
+| Runway | image (create) | audio (tts, sfx, sts, dubbing, isolation) | video (image2video, text2video, video2video, upscale, character) |
+| Luma | image (create, reframe) | - | video (create, extend, upscale, audio, modify) |
+| MiniMax | image (create) | tts (create), music (create), voice (upload, clone, design) | video (create) |
 
 ## CLI Structure
 
@@ -79,7 +77,7 @@ rawgenai <provider> <action> [options]
 
 Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`, `kling`, `runway`, `luma`, `minimax`
 
-Actions: `tts`, `stt`, `image`, `video`, `music` (varies by provider)
+Actions: `image`, `audio`, `video` (subcommands vary by provider)
 
 ## Output Format
 

@@ -43,6 +43,8 @@ kling video element delete <id>          # Delete a custom element
 | [video-element.md](video-element.md) | Element management commands |
 | [video-examples.md](video-examples.md) | Usage examples and workflows |
 | [voice.md](voice.md) | Voice cloning commands (`kling voice`) |
+| [image.md](image.md) | Image generation commands (`kling image`) |
+| [tts.md](tts.md) | Text-to-speech commands (`kling tts`) |
 
 ---
 
