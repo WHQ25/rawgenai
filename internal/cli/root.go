@@ -6,6 +6,7 @@ import (
 	"github.com/WHQ25/rawgenai/internal/cli/elevenlabs"
 	"github.com/WHQ25/rawgenai/internal/cli/google"
 	"github.com/WHQ25/rawgenai/internal/cli/grok"
+	"github.com/WHQ25/rawgenai/internal/cli/hunyuan"
 	"github.com/WHQ25/rawgenai/internal/cli/kling"
 	"github.com/WHQ25/rawgenai/internal/cli/luma"
 	"github.com/WHQ25/rawgenai/internal/cli/minimax"
@@ -31,6 +32,7 @@ func init() {
 	rootCmd.AddCommand(elevenlabs.Cmd)
 	rootCmd.AddCommand(grok.Cmd)
 	rootCmd.AddCommand(seed.Cmd)
+	rootCmd.AddCommand(hunyuan.Cmd)
 	rootCmd.AddCommand(kling.Cmd)
 	rootCmd.AddCommand(runway.Cmd)
 	rootCmd.AddCommand(luma.Cmd)

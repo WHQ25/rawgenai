@@ -4,11 +4,15 @@ go 1.25.6
 
 require (
 	github.com/ebitengine/oto/v3 v3.4.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/hajimehoshi/go-mp3 v0.3.4
 	github.com/openai/openai-go/v3 v3.17.0
 	github.com/spf13/cobra v1.10.2
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/aiart v1.3.43
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.3.43
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vclm v1.3.42
 	google.golang.org/genai v1.44.0
 )
 
@@ -17,7 +21,6 @@ require (
 	cloud.google.com/go/auth v0.9.3 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	github.com/ebitengine/purego v0.9.0 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect

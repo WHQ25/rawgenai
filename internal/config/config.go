@@ -26,6 +26,8 @@ type Config struct {
 	MinimaxAPIKey    string `json:"minimax_api_key,omitempty"`
 	DashscopeAPIKey  string `json:"dashscope_api_key,omitempty"`
 	DashscopeBaseURL string `json:"dashscope_base_url,omitempty"`
+	TencentSecretID  string `json:"tencent_secret_id,omitempty"`
+	TencentSecretKey string `json:"tencent_secret_key,omitempty"`
 }
 
 // validKeys maps normalized key names to their JSON field names
@@ -46,6 +48,8 @@ var validKeys = map[string]string{
 	"minimax_api_key":    "minimax_api_key",
 	"dashscope_api_key":  "dashscope_api_key",
 	"dashscope_base_url": "dashscope_base_url",
+	"tencent_secret_id":  "tencent_secret_id",
+	"tencent_secret_key": "tencent_secret_key",
 }
 
 // envToConfigKey maps environment variable names to config keys
@@ -66,6 +70,8 @@ var envToConfigKey = map[string]string{
 	"MINIMAX_API_KEY":    "minimax_api_key",
 	"DASHSCOPE_API_KEY":  "dashscope_api_key",
 	"DASHSCOPE_BASE_URL": "dashscope_base_url",
+	"TENCENT_SECRET_ID":  "tencent_secret_id",
+	"TENCENT_SECRET_KEY": "tencent_secret_key",
 }
 
 // Path returns the config file path
@@ -211,6 +217,10 @@ func (c *Config) Get(key string) string {
 		return c.DashscopeAPIKey
 	case "dashscope_base_url":
 		return c.DashscopeBaseURL
+	case "tencent_secret_id":
+		return c.TencentSecretID
+	case "tencent_secret_key":
+		return c.TencentSecretKey
 	default:
 		return ""
 	}
@@ -251,6 +261,10 @@ func (c *Config) Set(key, value string) error {
 		c.DashscopeAPIKey = value
 	case "dashscope_base_url":
 		c.DashscopeBaseURL = value
+	case "tencent_secret_id":
+		c.TencentSecretID = value
+	case "tencent_secret_key":
+		c.TencentSecretKey = value
 	default:
 		return fmt.Errorf("unknown key: %s", key)
 	}
