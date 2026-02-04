@@ -73,6 +73,7 @@ Notes:
 | Luma | image (create, reframe, status, download, delete) | - | video (create, extend, upscale, audio, modify, list, status, download, delete) |
 | MiniMax | image (create) | tts (create, status, download), music (create), voice (upload, clone, design, list, delete) | video (create, status, download) |
 | DashScope | image | tts, stt (default, create, status) | video (create, status, download) |
+| Hunyuan | image (create, status, download) | - | video (create, status, download) |
 
 ## Documentation
 
@@ -85,7 +86,7 @@ Notes:
 rawgenai <provider> <command> [subcommand] [options]
 ```
 
-Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`, `kling`, `runway`, `luma`, `minimax`, `dashscope`
+Providers: `openai`, `google`, `elevenlabs`, `grok`, `seed`, `kling`, `runway`, `luma`, `minimax`, `dashscope`, `hunyuan`
 
 Commands vary by provider; common examples include `image`, `video`, `tts`, `stt`, and `audio`.
 
@@ -149,6 +150,7 @@ Config file: `~/.config/rawgenai/config.json`
 - `MINIMAX_API_KEY` - MiniMax
 - `DASHSCOPE_API_KEY` - DashScope (Tongyi)
 - `DASHSCOPE_BASE_URL` - DashScope base URL/region (optional)
+- `TENCENT_SECRET_ID`, `TENCENT_SECRET_KEY` - Tencent Hunyuan
 
 ## License
 
