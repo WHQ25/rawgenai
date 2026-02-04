@@ -68,10 +68,10 @@ func playMP3(r io.Reader) error {
 
 // wavHeader represents a minimal WAV file header
 type wavHeader struct {
-	SampleRate   uint32
-	NumChannels  uint16
+	SampleRate    uint32
+	NumChannels   uint16
 	BitsPerSample uint16
-	DataSize     uint32
+	DataSize      uint32
 }
 
 func parseWAVHeader(r io.Reader) (*wavHeader, error) {

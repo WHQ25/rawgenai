@@ -209,6 +209,7 @@ func TestValidKeys(t *testing.T) {
 		"seed_app_id", "seed_access_token",
 		"kling_access_key", "kling_secret_key", "kling_base_url",
 		"runway_api_key", "luma_api_key", "minimax_api_key",
+		"dashscope_api_key", "dashscope_base_url",
 	}
 
 	if len(keys) != len(expectedKeys) {

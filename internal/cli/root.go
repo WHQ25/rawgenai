@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/WHQ25/rawgenai/internal/cli/config"
+	"github.com/WHQ25/rawgenai/internal/cli/dashscope"
 	"github.com/WHQ25/rawgenai/internal/cli/elevenlabs"
 	"github.com/WHQ25/rawgenai/internal/cli/google"
 	"github.com/WHQ25/rawgenai/internal/cli/grok"
@@ -34,6 +35,7 @@ func init() {
 	rootCmd.AddCommand(runway.Cmd)
 	rootCmd.AddCommand(luma.Cmd)
 	rootCmd.AddCommand(minimax.Cmd)
+	rootCmd.AddCommand(dashscope.Cmd)
 	rootCmd.AddCommand(config.Cmd)
 }
 

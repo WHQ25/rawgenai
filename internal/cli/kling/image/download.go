@@ -177,7 +177,7 @@ func getDownloadURL(token, taskID string, index int, watermark bool) (string, er
 		if msg == "" {
 			msg = "image generation failed"
 		}
-		return "", fmt.Errorf(msg)
+		return "", fmt.Errorf("%s", msg)
 	}
 
 	if result.Data.TaskStatus != "succeed" {

@@ -24,6 +24,8 @@ type Config struct {
 	RunwayAPIKey     string `json:"runway_api_key,omitempty"`
 	LumaAPIKey       string `json:"luma_api_key,omitempty"`
 	MinimaxAPIKey    string `json:"minimax_api_key,omitempty"`
+	DashscopeAPIKey  string `json:"dashscope_api_key,omitempty"`
+	DashscopeBaseURL string `json:"dashscope_base_url,omitempty"`
 }
 
 // validKeys maps normalized key names to their JSON field names
@@ -42,6 +44,8 @@ var validKeys = map[string]string{
 	"runway_api_key":     "runway_api_key",
 	"luma_api_key":       "luma_api_key",
 	"minimax_api_key":    "minimax_api_key",
+	"dashscope_api_key":  "dashscope_api_key",
+	"dashscope_base_url": "dashscope_base_url",
 }
 
 // envToConfigKey maps environment variable names to config keys
@@ -60,6 +64,8 @@ var envToConfigKey = map[string]string{
 	"RUNWAY_API_KEY":     "runway_api_key",
 	"LUMA_API_KEY":       "luma_api_key",
 	"MINIMAX_API_KEY":    "minimax_api_key",
+	"DASHSCOPE_API_KEY":  "dashscope_api_key",
+	"DASHSCOPE_BASE_URL": "dashscope_base_url",
 }
 
 // Path returns the config file path
@@ -201,6 +207,10 @@ func (c *Config) Get(key string) string {
 		return c.LumaAPIKey
 	case "minimax_api_key":
 		return c.MinimaxAPIKey
+	case "dashscope_api_key":
+		return c.DashscopeAPIKey
+	case "dashscope_base_url":
+		return c.DashscopeBaseURL
 	default:
 		return ""
 	}
@@ -237,6 +247,10 @@ func (c *Config) Set(key, value string) error {
 		c.LumaAPIKey = value
 	case "minimax_api_key":
 		c.MinimaxAPIKey = value
+	case "dashscope_api_key":
+		c.DashscopeAPIKey = value
+	case "dashscope_base_url":
+		c.DashscopeBaseURL = value
 	default:
 		return fmt.Errorf("unknown key: %s", key)
 	}
