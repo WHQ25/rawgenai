@@ -7,6 +7,7 @@ import (
 	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/WHQ25/rawgenai/internal/config"
 	oai "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 	"github.com/spf13/cobra"
 )
 
@@ -49,7 +50,7 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get video status
-	client := oai.NewClient()
+	client := oai.NewClient(option.WithAPIKey(apiKey))
 	ctx := context.Background()
 
 	video, err := client.Videos.Get(ctx, videoID)

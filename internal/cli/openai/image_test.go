@@ -2,6 +2,8 @@ package openai
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -269,6 +271,28 @@ func TestImage_MissingAPIKey(t *testing.T) {
 	errorObj := resp["error"].(map[string]any)
 	if errorObj["code"] != "missing_api_key" {
 		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+func TestImage_APIKeyFromConfig(t *testing.T) {
+	var receivedKey string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedKey = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"id":"resp_123","output":[{"type":"image_generation_call","result":"aGVsbG8="}]}`))
+	}))
+	defer server.Close()
+
+	common.SetupConfigWithAPIKey(t, map[string]string{"openai_api_key": "sk-test-config-key"})
+	t.Setenv("OPENAI_API_KEY", "")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+
+	tmpDir := t.TempDir()
+	cmd := newImageCmd()
+	executeCommand(cmd, "A cute cat", "-o", tmpDir+"/out.png")
+
+	if receivedKey != "sk-test-config-key" {
+		t.Errorf("expected client to receive API key from config, got: %q", receivedKey)
 	}
 }
 

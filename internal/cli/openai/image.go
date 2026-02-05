@@ -11,6 +11,7 @@ import (
 	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/WHQ25/rawgenai/internal/config"
 	oai "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/spf13/cobra"
 )
@@ -229,7 +230,7 @@ func runImage(cmd *cobra.Command, args []string, flags *imageFlags) error {
 	}
 
 	// Call API
-	client := oai.NewClient()
+	client := oai.NewClient(option.WithAPIKey(apiKey))
 	ctx := context.Background()
 
 	resp, err := client.Responses.New(ctx, params)

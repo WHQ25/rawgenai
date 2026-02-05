@@ -3,6 +3,8 @@ package video
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -124,6 +126,27 @@ func TestCreate_MissingAPIKey(t *testing.T) {
 	errorObj := resp["error"].(map[string]any)
 	if errorObj["code"] != "missing_api_key" {
 		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+func TestCreate_APIKeyFromConfig(t *testing.T) {
+	var receivedKey string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedKey = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"id":"video_123","status":"queued"}`))
+	}))
+	defer server.Close()
+
+	common.SetupConfigWithAPIKey(t, map[string]string{"openai_api_key": "sk-test-config-key"})
+	t.Setenv("OPENAI_API_KEY", "")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+
+	cmd := newCreateCmd()
+	executeCommand(cmd, "A cat")
+
+	if receivedKey != "sk-test-config-key" {
+		t.Errorf("expected client to receive API key from config, got: %q", receivedKey)
 	}
 }
 
@@ -367,6 +390,27 @@ func TestStatus_MissingAPIKey(t *testing.T) {
 	}
 }
 
+func TestStatus_APIKeyFromConfig(t *testing.T) {
+	var receivedKey string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedKey = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"id":"video_abc123","status":"completed"}`))
+	}))
+	defer server.Close()
+
+	common.SetupConfigWithAPIKey(t, map[string]string{"openai_api_key": "sk-test-config-key"})
+	t.Setenv("OPENAI_API_KEY", "")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+
+	cmd := newStatusCmd()
+	executeCommand(cmd, "video_abc123")
+
+	if receivedKey != "sk-test-config-key" {
+		t.Errorf("expected client to receive API key from config, got: %q", receivedKey)
+	}
+}
+
 // ============ video download tests ============
 
 func TestDownload_MissingVideoID(t *testing.T) {
@@ -476,6 +520,28 @@ func TestDownload_MissingAPIKey(t *testing.T) {
 	}
 }
 
+func TestDownload_APIKeyFromConfig(t *testing.T) {
+	var receivedKey string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedKey = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"id":"video_abc123","status":"completed","downloads":{"video":{"url":"http://example.com/video.mp4"}}}`))
+	}))
+	defer server.Close()
+
+	common.SetupConfigWithAPIKey(t, map[string]string{"openai_api_key": "sk-test-config-key"})
+	t.Setenv("OPENAI_API_KEY", "")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+
+	tmpDir := t.TempDir()
+	cmd := newDownloadCmd()
+	executeCommand(cmd, "video_abc123", "-o", tmpDir+"/out.mp4")
+
+	if receivedKey != "sk-test-config-key" {
+		t.Errorf("expected client to receive API key from config, got: %q", receivedKey)
+	}
+}
+
 func TestDownload_ValidFlags(t *testing.T) {
 	cmd := newDownloadCmd()
 
@@ -508,6 +574,27 @@ func TestList_MissingAPIKey(t *testing.T) {
 	errorObj := resp["error"].(map[string]any)
 	if errorObj["code"] != "missing_api_key" {
 		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+func TestList_APIKeyFromConfig(t *testing.T) {
+	var receivedKey string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedKey = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"data":[]}`))
+	}))
+	defer server.Close()
+
+	common.SetupConfigWithAPIKey(t, map[string]string{"openai_api_key": "sk-test-config-key"})
+	t.Setenv("OPENAI_API_KEY", "")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+
+	cmd := newListCmd()
+	executeCommand(cmd)
+
+	if receivedKey != "sk-test-config-key" {
+		t.Errorf("expected client to receive API key from config, got: %q", receivedKey)
 	}
 }
 
@@ -574,6 +661,27 @@ func TestDelete_MissingAPIKey(t *testing.T) {
 	}
 }
 
+func TestDelete_APIKeyFromConfig(t *testing.T) {
+	var receivedKey string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedKey = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{}`))
+	}))
+	defer server.Close()
+
+	common.SetupConfigWithAPIKey(t, map[string]string{"openai_api_key": "sk-test-config-key"})
+	t.Setenv("OPENAI_API_KEY", "")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+
+	cmd := newDeleteCmd()
+	executeCommand(cmd, "video_abc123")
+
+	if receivedKey != "sk-test-config-key" {
+		t.Errorf("expected client to receive API key from config, got: %q", receivedKey)
+	}
+}
+
 // ============ video remix tests ============
 
 func TestRemix_MissingVideoID(t *testing.T) {
@@ -623,5 +731,26 @@ func TestRemix_MissingAPIKey(t *testing.T) {
 	errorObj := resp["error"].(map[string]any)
 	if errorObj["code"] != "missing_api_key" {
 		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+func TestRemix_APIKeyFromConfig(t *testing.T) {
+	var receivedKey string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedKey = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"id":"video_456","status":"queued"}`))
+	}))
+	defer server.Close()
+
+	common.SetupConfigWithAPIKey(t, map[string]string{"openai_api_key": "sk-test-config-key"})
+	t.Setenv("OPENAI_API_KEY", "")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+
+	cmd := newRemixCmd()
+	executeCommand(cmd, "video_abc123", "New prompt")
+
+	if receivedKey != "sk-test-config-key" {
+		t.Errorf("expected client to receive API key from config, got: %q", receivedKey)
 	}
 }

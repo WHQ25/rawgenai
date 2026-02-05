@@ -7,6 +7,7 @@ import (
 	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/WHQ25/rawgenai/internal/config"
 	oai "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 	"github.com/spf13/cobra"
 )
 
@@ -46,7 +47,7 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return common.WriteError(cmd, "missing_api_key", config.GetMissingKeyMessage("OPENAI_API_KEY"))
 	}
 
-	client := oai.NewClient()
+	client := oai.NewClient(option.WithAPIKey(apiKey))
 	ctx := context.Background()
 
 	resp, err := client.Videos.Delete(ctx, videoID)

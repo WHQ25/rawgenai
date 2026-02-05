@@ -2,6 +2,8 @@ package openai
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -148,6 +150,35 @@ func TestSTT_MissingAPIKey(t *testing.T) {
 	errorObj := resp["error"].(map[string]any)
 	if errorObj["code"] != "missing_api_key" {
 		t.Errorf("expected error code 'missing_api_key', got: %s", errorObj["code"])
+	}
+}
+
+func TestSTT_APIKeyFromConfig(t *testing.T) {
+	var receivedKey string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedKey = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"text":"hello"}`))
+	}))
+	defer server.Close()
+
+	common.SetupConfigWithAPIKey(t, map[string]string{"openai_api_key": "sk-test-config-key"})
+	t.Setenv("OPENAI_API_KEY", "")
+	t.Setenv("OPENAI_BASE_URL", server.URL)
+
+	tmpFile, err := os.CreateTemp("", "stt_test_*.mp3")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpFile.Name())
+	tmpFile.WriteString("fake audio content")
+	tmpFile.Close()
+
+	cmd := newSTTCmd()
+	executeCommand(cmd, tmpFile.Name())
+
+	if receivedKey != "sk-test-config-key" {
+		t.Errorf("expected client to receive API key from config, got: %q", receivedKey)
 	}
 }
 

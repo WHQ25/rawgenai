@@ -11,6 +11,7 @@ import (
 	"github.com/WHQ25/rawgenai/internal/cli/common"
 	"github.com/WHQ25/rawgenai/internal/config"
 	oai "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 	"github.com/spf13/cobra"
 )
 
@@ -112,7 +113,7 @@ func runCreate(cmd *cobra.Command, args []string, flags *createFlags) error {
 	}
 
 	// Call OpenAI API
-	client := oai.NewClient()
+	client := oai.NewClient(option.WithAPIKey(apiKey))
 	ctx := context.Background()
 
 	params := oai.VideoNewParams{
